@@ -57,7 +57,8 @@ O ciclo de desenvolvimento e implantação do software está dimensionado em 6 S
 
 ## 📄 Arquivos do Repositório
 
-- `Artigo_Final_SBC.pdf`: Artigo científico completo formatado no padrão da Sociedade Brasileira de Computação (SBC), contendo a fundamentação teórica, análise de trabalhos correlatos, modelagem da arquitetura e conclusões do planejamento.
+Artigo científico completo formatado no padrão da Sociedade Brasileira de Computação (SBC), contendo a fundamentação teórica, análise de trabalhos correlatos, modelagem da arquitetura e conclusões do planejamento.
+[PAC_COMPOSTAGEM_N3.pdf](https://github.com/user-attachments/files/28938844/PAC_COMPOSTAGEM_N3.pdf)
 
 ---
 *Este projeto foi desenvolvido como requisito de avaliação (N3) acadêmica, focado na etapa de Engenharia de Requisitos e Planejamento Arquitetural de Software.*
