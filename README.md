@@ -5,7 +5,7 @@
 
 > **Projeto de Portfólio (Engenharia de Software/Ciência da Computação)** <br>
 > **Autor:** Felipe Bogo <br>
-> **Instituição:** Centro Universitário Católica de Santa Catarina
+> **Instituição:** Centro Universitário Católica de Santa Catarina (Católica SC)
 
 ## 📖 Sobre o Projeto
 
@@ -17,26 +17,47 @@ O objetivo principal do projeto é garantir o cumprimento ininterrupto da fase t
 
 Atualmente, o monitoramento de pátios de compostagem sofre com uma polarização tecnológica:
 1. **O Status Quo (Planilhas e Papel):** Sujeito a graves erros humanos, perdas de dados e fraudes temporais, impossibilitando uma rastreabilidade real.
-2. **Soluções de Mercado (Telemetria IoT):** Dependem de hardwares importados caros (sensores de temperatura) e exigem conectividade de internet contínua (Wi-Fi/4G), algo raro em áreas agrícolas e pátios abertos.
+2. **Soluções de Mercado (Telemetria IoT):** Dependem de hardwares importados caros (sensores de temperatura) e exigem conectividade de internet contínua (Wi-Fi/4G), algo que falha frequentemente em áreas agrícolas e pátios abertos ("sombras de sinal").
 
 ## 💡 A Inovação e a Solução Proposta
 
-O sistema projetado inova ao atuar como um **meio-termo inteligente e resiliente**:
+O sistema projetado inova ao atuar como um **meio-termo inteligente e resiliente**, centralizando todo o cálculo agronômico, coleta e emissão de laudos em uma única plataforma operável no campo:
 
-- **Arquitetura PWA (Offline-First):** O frontend é planejado em React como um Progressive Web App. O operador insere a temperatura manualmente no meio do pátio, **totalmente offline**. O sistema armazena no cache do dispositivo e sincroniza os dados assim que uma rede é detectada.
-- **Motor de Regras Agronômicas:** O backend planejado em Python cruza os dados coletados com a legislação do MAPA (Base de Conhecimento). Ele bloqueia datas retroativas, emite alertas se a temperatura cair abruptamente e calcula a relação Carbono/Nitrogênio ideal automaticamente.
+- **Arquitetura PWA (Offline-First):** O operador insere a temperatura manualmente no meio do pátio com um smartphone, **totalmente offline**. O sistema armazena no cache do dispositivo e sincroniza os dados passivamente assim que uma rede Wi-Fi é detectada.
+- **Motor de Regras Agronômicas:** O backend atua como o "cérebro" da operação, cruzando os dados coletados com a legislação do MAPA (Base de Conhecimento), bloqueando adulterações temporais e emitindo alertas preventivos.
 
-## ⚙️ Principais Requisitos Especificados
+## ⚙️ Especificação de Requisitos
 
-- **RF01:** Cálculo automático de traço biológico (Balanço C:N e Umidade).
-- **RF02:** Trava de inserção temporal (bloqueio contra dados retroativos).
-- **RF03:** Disparo algorítmico de alertas de quebra de ciclo termofílico.
-- **RNF01:** Trilha de auditoria (Log) imutável com carimbo de tempo para certificação.
+A arquitetura foi mapeada com rigor técnico para o desenvolvimento futuro, destacando-se:
+
+### Requisitos Funcionais (RF)
+- **RF01:** Cálculo automático de traço biológico (Balanço Carbono/Nitrogênio e Umidade ideal).
+- **RF02:** Trava lógica sistêmica impedindo a inserção de dados com datas retroativas a 24 horas.
+- **RF03:** Disparo algorítmico de alertas ao gestor em caso de quebra de ciclo termofílico (queda de temperatura).
+- **RF04:** Geração e exportação automática de laudos de auditoria em PDF.
+- **RF05:** Sincronização assíncrona dos dados via *Service Workers* (PWA) ao detectar conectividade.
+
+### Requisitos Não Funcionais e Restrições (RNF)
+- **RNF01 (Auditoria):** Geração de Logs imutáveis com carimbo de tempo, geolocalização e usuário.
+- **RNF03 (Usabilidade UX):** Interface adaptada com alto contraste e botões expandidos para uso de operadores com luvas no pátio.
+- **Restrições Tecnológicas:** - **Frontend:** Desenvolvido obrigatoriamente em **React** (Ecossistema PWA).
+  - **Backend:** Desenvolvido em **Python** (FastAPI/Django) para alta eficiência matemática no motor de inferência.
+  - **Banco de Dados:** **PostgreSQL** para garantir persistência e relacionamento atômico (ACID) dos dados biológicos.
+
+## 🚀 Roadmap de Desenvolvimento
+
+O ciclo de desenvolvimento e implantação do software está dimensionado em 6 Sprints mensais:
+
+- **Mês 1:** Infraestrutura, modelagem do Banco de Dados (PostgreSQL) e base da API RESTful.
+- **Mês 2:** Codificação do Motor de Inferência (Python) e tradução das regras do MAPA.
+- **Mês 3:** Desenvolvimento da interface UI/UX *mobile-first* (React).
+- **Mês 4:** Conversão da aplicação para PWA, configurando IndexedDB para modo 100% offline.
+- **Mês 5:** Integração Frontend/Backend e simulações de estresse de sincronização assíncrona.
+- **Mês 6:** Homologação em usina parceira, ajustes práticos e *deploy* em produção.
 
 ## 📄 Arquivos do Repositório
 
-Artigo científico completo formatado no padrão SBC contendo a fundamentação teórica, análise de trabalhos correlatos, detalhamento da arquitetura PWA e conclusões.
-
+- `Artigo_Final_SBC.pdf`: Artigo científico completo formatado no padrão da Sociedade Brasileira de Computação (SBC), contendo a fundamentação teórica, análise de trabalhos correlatos, modelagem da arquitetura e conclusões do planejamento.
 
 ---
 *Este projeto foi desenvolvido como requisito de avaliação (N3) acadêmica, focado na etapa de Engenharia de Requisitos e Planejamento Arquitetural de Software.*
