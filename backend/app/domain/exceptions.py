@@ -27,3 +27,27 @@ class ServicoIndisponivel(ErroDeDominio):
     """Dependência externa essencial (ex.: banco de dados) fora do ar."""
 
     mensagem_padrao = "Serviço temporariamente indisponível."
+
+
+class EntidadeDuplicada(RegraDeNegocioViolada):
+    """Violação de unicidade (ex.: e-mail ou código já cadastrado)."""
+
+    mensagem_padrao = "Já existe um registro com esses dados."
+
+
+class CredenciaisInvalidas(ErroDeDominio):
+    """E-mail ou senha incorretos na autenticação."""
+
+    mensagem_padrao = "Credenciais inválidas."
+
+
+class NaoAutenticado(ErroDeDominio):
+    """Requisição sem token válido para um recurso protegido."""
+
+    mensagem_padrao = "Autenticação necessária."
+
+
+class AcessoNegado(ErroDeDominio):
+    """Usuário autenticado, mas sem permissão para a operação."""
+
+    mensagem_padrao = "Acesso negado para esta operação."
