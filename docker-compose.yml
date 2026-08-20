@@ -31,6 +31,9 @@ services:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-compostagem}:${POSTGRES_PASSWORD:-compostagem}@db:5432/${POSTGRES_DB:-compostagem}
       AMBIENTE: ${AMBIENTE:-desenvolvimento}
       DEBUG: ${DEBUG:-true}
+      JWT_SEGREDO: ${JWT_SEGREDO:-troque-este-segredo-em-producao-com-uma-chave-longa-e-aleatoria}
+      JWT_ALGORITMO: ${JWT_ALGORITMO:-HS256}
+      JWT_EXPIRA_MINUTOS: ${JWT_EXPIRA_MINUTOS:-480}
       TZ: America/Sao_Paulo
     ports:
       - "${API_PORT:-8000}:8000"

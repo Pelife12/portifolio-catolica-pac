@@ -30,6 +30,14 @@ class Settings(BaseSettings):
     # CORS: origens liberadas para o PWA em React
     origens_permitidas: list[str] = Field(default=["http://localhost:5173"])
 
+    # Autenticação JWT. O segredo DEVE ser sobrescrito por variável de ambiente
+    # em produção — o valor padrão serve apenas para o ambiente local.
+    jwt_segredo: str = Field(
+        default="troque-este-segredo-em-producao-com-uma-chave-longa-e-aleatoria"
+    )
+    jwt_algoritmo: str = Field(default="HS256")
+    jwt_expira_minutos: int = Field(default=60 * 8)  # jornada de trabalho
+
     # Regras de negócio parametrizáveis (usadas a partir da Sprint 2)
     janela_retroativa_horas: int = Field(default=24)
     temperatura_termofilica_minima: float = Field(default=55.0)
