@@ -15,9 +15,11 @@ RUN pip install --upgrade pip && pip install -r requirements-dev.txt
 
 COPY . .
 
-RUN useradd --create-home appuser && chown -R appuser:appuser /app
+RUN chmod +x entrypoint.sh \
+    && useradd --create-home appuser && chown -R appuser:appuser /app
 USER appuser
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Aplica as migrations e então sobe a API (ver entrypoint.sh).
+CMD ["./entrypoint.sh"]
