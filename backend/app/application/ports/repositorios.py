@@ -10,7 +10,11 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from uuid import UUID
 
+from decimal import Decimal
+
 from app.infrastructure.database.models.leira import Leira
+from app.infrastructure.database.models.leira_residuo import LeiraResiduo
+from app.infrastructure.database.models.residuo import Residuo
 from app.infrastructure.database.models.usina import Usina
 from app.infrastructure.database.models.usuario import Usuario
 
@@ -52,6 +56,34 @@ class UsuarioRepository(ABC):
 
     @abstractmethod
     async def remover(self, usuario: Usuario) -> None: ...
+
+
+class ResiduoRepository(ABC):
+    @abstractmethod
+    async def adicionar(self, residuo: Residuo) -> Residuo: ...
+
+    @abstractmethod
+    async def obter_por_id(self, residuo_id: UUID) -> Residuo | None: ...
+
+    @abstractmethod
+    async def obter_por_ids(self, ids: list[UUID]) -> list[Residuo]: ...
+
+    @abstractmethod
+    async def obter_por_nome(self, nome: str) -> Residuo | None: ...
+
+    @abstractmethod
+    async def listar(self, limite: int, deslocamento: int) -> list[Residuo]: ...
+
+
+class LeiraResiduoRepository(ABC):
+    @abstractmethod
+    async def listar_por_leira(self, leira_id: UUID) -> list[LeiraResiduo]: ...
+
+    @abstractmethod
+    async def substituir_composicao(
+        self, leira_id: UUID, componentes: list[tuple[UUID, Decimal]]
+    ) -> list[LeiraResiduo]:
+        """Substitui toda a composição da leira pela lista (residuo_id, massa_kg)."""
 
 
 class LeiraRepository(ABC):
