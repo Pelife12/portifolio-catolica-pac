@@ -44,9 +44,10 @@ class Afericao(UUIDPrimaryKeyMixin, Base):
     registrado_em: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, index=True
     )
-    # Geolocalização capturada no momento da coleta (RNF01).
-    latitude: Mapped[float | None] = mapped_column(sa.Numeric(9, 6))
-    longitude: Mapped[float | None] = mapped_column(sa.Numeric(9, 6))
+    # Geolocalização capturada no momento da coleta. Obrigatória (RNF01): toda
+    # aferição precisa comprovar onde foi feita, para a trilha de auditoria.
+    latitude: Mapped[float] = mapped_column(sa.Numeric(9, 6), nullable=False)
+    longitude: Mapped[float] = mapped_column(sa.Numeric(9, 6), nullable=False)
 
     # UUID gerado no cliente para deduplicar reenvios na sincronização offline.
     id_cliente: Mapped[uuid.UUID | None] = mapped_column(sa.Uuid, unique=True)
