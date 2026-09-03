@@ -12,6 +12,7 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.ports.repositorios import (
+    AfericaoRepository,
     LeiraRepository,
     LeiraResiduoRepository,
     ResiduoRepository,
@@ -19,6 +20,7 @@ from app.application.ports.repositorios import (
     UsuarioRepository,
 )
 from app.application.ports.seguranca import GeradorDeToken, HashDeSenha
+from app.application.services.afericao_service import AfericaoService
 from app.application.services.autenticacao_service import AutenticacaoService
 from app.application.services.leira_service import LeiraService
 from app.application.services.residuo_service import ResiduoService
@@ -33,6 +35,9 @@ from app.infrastructure.database.models.usuario import Usuario
 from app.infrastructure.database.session import get_session
 from app.infrastructure.database.verificador_de_saude_postgres import (
     VerificadorDeSaudePostgres,
+)
+from app.infrastructure.repositories.afericao_repository_sqlalchemy import (
+    AfericaoRepositorySQLAlchemy,
 )
 from app.infrastructure.repositories.leira_repository_sqlalchemy import (
     LeiraRepositorySQLAlchemy,
@@ -123,11 +128,16 @@ def get_leira_residuo_repo(session: SessionDep) -> LeiraResiduoRepository:
     return LeiraResiduoRepositorySQLAlchemy(session)
 
 
+def get_afericao_repo(session: SessionDep) -> AfericaoRepository:
+    return AfericaoRepositorySQLAlchemy(session)
+
+
 UsinaRepoDep = Annotated[UsinaRepository, Depends(get_usina_repo)]
 UsuarioRepoDep = Annotated[UsuarioRepository, Depends(get_usuario_repo)]
 LeiraRepoDep = Annotated[LeiraRepository, Depends(get_leira_repo)]
 ResiduoRepoDep = Annotated[ResiduoRepository, Depends(get_residuo_repo)]
 LeiraResiduoRepoDep = Annotated[LeiraResiduoRepository, Depends(get_leira_residuo_repo)]
+AfericaoRepoDep = Annotated[AfericaoRepository, Depends(get_afericao_repo)]
 
 
 # ---------------------------------------------------------------------------
@@ -165,12 +175,21 @@ def get_traco_service(
     return TracoService(residuo_repo, leira_repo, leira_residuo_repo)
 
 
+def get_afericao_service(
+    afericao_repo: AfericaoRepoDep, leira_repo: LeiraRepoDep, settings: SettingsDep
+) -> AfericaoService:
+    return AfericaoService(
+        afericao_repo, leira_repo, settings.janela_retroativa_horas
+    )
+
+
 AutenticacaoServiceDep = Annotated[AutenticacaoService, Depends(get_autenticacao_service)]
 UsinaServiceDep = Annotated[UsinaService, Depends(get_usina_service)]
 UsuarioServiceDep = Annotated[UsuarioService, Depends(get_usuario_service)]
 LeiraServiceDep = Annotated[LeiraService, Depends(get_leira_service)]
 ResiduoServiceDep = Annotated[ResiduoService, Depends(get_residuo_service)]
 TracoServiceDep = Annotated[TracoService, Depends(get_traco_service)]
+AfericaoServiceDep = Annotated[AfericaoService, Depends(get_afericao_service)]
 
 
 # ---------------------------------------------------------------------------
