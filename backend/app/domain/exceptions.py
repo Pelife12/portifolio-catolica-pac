@@ -35,6 +35,12 @@ class EntidadeDuplicada(RegraDeNegocioViolada):
     mensagem_padrao = "Já existe um registro com esses dados."
 
 
+class AfericaoForaDaJanela(RegraDeNegocioViolada):
+    """Aferição com horário de coleta fora da janela permitida (RF02)."""
+
+    mensagem_padrao = "Horário da coleta fora da janela permitida."
+
+
 class CredenciaisInvalidas(ErroDeDominio):
     """E-mail ou senha incorretos na autenticação."""
 
