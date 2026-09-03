@@ -2,7 +2,16 @@
 
 from fastapi import APIRouter
 
-from app.api.v1.routes import auth, leiras, residuos, saude, traco, usinas, usuarios
+from app.api.v1.routes import (
+    afericoes,
+    auth,
+    leiras,
+    residuos,
+    saude,
+    traco,
+    usinas,
+    usuarios,
+)
 
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(saude.router)
@@ -12,3 +21,4 @@ api_router.include_router(usuarios.router)
 api_router.include_router(residuos.router)
 api_router.include_router(leiras.router)
 api_router.include_router(traco.router)
+api_router.include_router(afericoes.router)

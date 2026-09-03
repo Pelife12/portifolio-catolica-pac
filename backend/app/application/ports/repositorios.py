@@ -12,6 +12,7 @@ from uuid import UUID
 
 from decimal import Decimal
 
+from app.infrastructure.database.models.afericao import Afericao
 from app.infrastructure.database.models.leira import Leira
 from app.infrastructure.database.models.leira_residuo import LeiraResiduo
 from app.infrastructure.database.models.residuo import Residuo
@@ -56,6 +57,22 @@ class UsuarioRepository(ABC):
 
     @abstractmethod
     async def remover(self, usuario: Usuario) -> None: ...
+
+
+class AfericaoRepository(ABC):
+    @abstractmethod
+    async def adicionar(self, afericao: Afericao) -> Afericao: ...
+
+    @abstractmethod
+    async def obter_por_id(self, afericao_id: UUID) -> Afericao | None: ...
+
+    @abstractmethod
+    async def obter_por_id_cliente(self, id_cliente: UUID) -> Afericao | None: ...
+
+    @abstractmethod
+    async def listar(
+        self, leira_id: UUID | None, limite: int, deslocamento: int
+    ) -> list[Afericao]: ...
 
 
 class ResiduoRepository(ABC):
