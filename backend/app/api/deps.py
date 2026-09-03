@@ -13,12 +13,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.ports.repositorios import (
     LeiraRepository,
+    LeiraResiduoRepository,
+    ResiduoRepository,
     UsinaRepository,
     UsuarioRepository,
 )
 from app.application.ports.seguranca import GeradorDeToken, HashDeSenha
 from app.application.services.autenticacao_service import AutenticacaoService
 from app.application.services.leira_service import LeiraService
+from app.application.services.residuo_service import ResiduoService
+from app.application.services.traco_service import TracoService
 from app.application.services.usina_service import UsinaService
 from app.application.services.usuario_service import UsuarioService
 from app.application.use_cases.verificar_saude import VerificarSaudeUseCase
@@ -32,6 +36,12 @@ from app.infrastructure.database.verificador_de_saude_postgres import (
 )
 from app.infrastructure.repositories.leira_repository_sqlalchemy import (
     LeiraRepositorySQLAlchemy,
+)
+from app.infrastructure.repositories.leira_residuo_repository_sqlalchemy import (
+    LeiraResiduoRepositorySQLAlchemy,
+)
+from app.infrastructure.repositories.residuo_repository_sqlalchemy import (
+    ResiduoRepositorySQLAlchemy,
 )
 from app.infrastructure.repositories.usina_repository_sqlalchemy import (
     UsinaRepositorySQLAlchemy,
@@ -105,9 +115,19 @@ def get_leira_repo(session: SessionDep) -> LeiraRepository:
     return LeiraRepositorySQLAlchemy(session)
 
 
+def get_residuo_repo(session: SessionDep) -> ResiduoRepository:
+    return ResiduoRepositorySQLAlchemy(session)
+
+
+def get_leira_residuo_repo(session: SessionDep) -> LeiraResiduoRepository:
+    return LeiraResiduoRepositorySQLAlchemy(session)
+
+
 UsinaRepoDep = Annotated[UsinaRepository, Depends(get_usina_repo)]
 UsuarioRepoDep = Annotated[UsuarioRepository, Depends(get_usuario_repo)]
 LeiraRepoDep = Annotated[LeiraRepository, Depends(get_leira_repo)]
+ResiduoRepoDep = Annotated[ResiduoRepository, Depends(get_residuo_repo)]
+LeiraResiduoRepoDep = Annotated[LeiraResiduoRepository, Depends(get_leira_residuo_repo)]
 
 
 # ---------------------------------------------------------------------------
@@ -133,10 +153,24 @@ def get_leira_service(leira_repo: LeiraRepoDep, usina_repo: UsinaRepoDep) -> Lei
     return LeiraService(leira_repo, usina_repo)
 
 
+def get_residuo_service(residuo_repo: ResiduoRepoDep) -> ResiduoService:
+    return ResiduoService(residuo_repo)
+
+
+def get_traco_service(
+    residuo_repo: ResiduoRepoDep,
+    leira_repo: LeiraRepoDep,
+    leira_residuo_repo: LeiraResiduoRepoDep,
+) -> TracoService:
+    return TracoService(residuo_repo, leira_repo, leira_residuo_repo)
+
+
 AutenticacaoServiceDep = Annotated[AutenticacaoService, Depends(get_autenticacao_service)]
 UsinaServiceDep = Annotated[UsinaService, Depends(get_usina_service)]
 UsuarioServiceDep = Annotated[UsuarioService, Depends(get_usuario_service)]
 LeiraServiceDep = Annotated[LeiraService, Depends(get_leira_service)]
+ResiduoServiceDep = Annotated[ResiduoService, Depends(get_residuo_service)]
+TracoServiceDep = Annotated[TracoService, Depends(get_traco_service)]
 
 
 # ---------------------------------------------------------------------------
