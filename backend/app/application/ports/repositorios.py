@@ -13,6 +13,8 @@ from uuid import UUID
 from decimal import Decimal
 
 from app.infrastructure.database.models.afericao import Afericao
+from app.infrastructure.database.models.alerta import Alerta
+from app.infrastructure.database.models.enums import StatusAlerta, TipoAlerta
 from app.infrastructure.database.models.leira import Leira
 from app.infrastructure.database.models.leira_residuo import LeiraResiduo
 from app.infrastructure.database.models.residuo import Residuo
@@ -73,6 +75,32 @@ class AfericaoRepository(ABC):
     async def listar(
         self, leira_id: UUID | None, limite: int, deslocamento: int
     ) -> list[Afericao]: ...
+
+
+class AlertaRepository(ABC):
+    @abstractmethod
+    async def adicionar(self, alerta: Alerta) -> Alerta: ...
+
+    @abstractmethod
+    async def obter_por_id(self, alerta_id: UUID) -> Alerta | None: ...
+
+    @abstractmethod
+    async def atualizar(self, alerta: Alerta) -> Alerta: ...
+
+    @abstractmethod
+    async def listar(
+        self,
+        leira_id: UUID | None,
+        status: StatusAlerta | None,
+        limite: int,
+        deslocamento: int,
+    ) -> list[Alerta]: ...
+
+    @abstractmethod
+    async def existe_para(
+        self, leira_id: UUID, tipo: TipoAlerta, afericao_id: UUID | None
+    ) -> bool:
+        """Indica se já há um alerta do mesmo tipo/aferição (evita duplicação)."""
 
 
 class ResiduoRepository(ABC):
