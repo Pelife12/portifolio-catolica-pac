@@ -4,6 +4,7 @@ from fastapi import APIRouter
 
 from app.api.v1.routes import (
     afericoes,
+    alertas,
     auth,
     leiras,
     residuos,
@@ -22,3 +23,4 @@ api_router.include_router(residuos.router)
 api_router.include_router(leiras.router)
 api_router.include_router(traco.router)
 api_router.include_router(afericoes.router)
+api_router.include_router(alertas.router)

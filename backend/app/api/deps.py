@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.ports.repositorios import (
     AfericaoRepository,
+    AlertaRepository,
     LeiraRepository,
     LeiraResiduoRepository,
     ResiduoRepository,
@@ -21,8 +22,13 @@ from app.application.ports.repositorios import (
 )
 from app.application.ports.seguranca import GeradorDeToken, HashDeSenha
 from app.application.services.afericao_service import AfericaoService
+from app.application.services.alerta_service import AlertaService
 from app.application.services.autenticacao_service import AutenticacaoService
 from app.application.services.leira_service import LeiraService
+from app.application.services.motor_de_alertas_service import (
+    MotorDeAlertasService,
+    parametros_do_motor,
+)
 from app.application.services.residuo_service import ResiduoService
 from app.application.services.traco_service import TracoService
 from app.application.services.usina_service import UsinaService
@@ -38,6 +44,9 @@ from app.infrastructure.database.verificador_de_saude_postgres import (
 )
 from app.infrastructure.repositories.afericao_repository_sqlalchemy import (
     AfericaoRepositorySQLAlchemy,
+)
+from app.infrastructure.repositories.alerta_repository_sqlalchemy import (
+    AlertaRepositorySQLAlchemy,
 )
 from app.infrastructure.repositories.leira_repository_sqlalchemy import (
     LeiraRepositorySQLAlchemy,
@@ -132,12 +141,17 @@ def get_afericao_repo(session: SessionDep) -> AfericaoRepository:
     return AfericaoRepositorySQLAlchemy(session)
 
 
+def get_alerta_repo(session: SessionDep) -> AlertaRepository:
+    return AlertaRepositorySQLAlchemy(session)
+
+
 UsinaRepoDep = Annotated[UsinaRepository, Depends(get_usina_repo)]
 UsuarioRepoDep = Annotated[UsuarioRepository, Depends(get_usuario_repo)]
 LeiraRepoDep = Annotated[LeiraRepository, Depends(get_leira_repo)]
 ResiduoRepoDep = Annotated[ResiduoRepository, Depends(get_residuo_repo)]
 LeiraResiduoRepoDep = Annotated[LeiraResiduoRepository, Depends(get_leira_residuo_repo)]
 AfericaoRepoDep = Annotated[AfericaoRepository, Depends(get_afericao_repo)]
+AlertaRepoDep = Annotated[AlertaRepository, Depends(get_alerta_repo)]
 
 
 # ---------------------------------------------------------------------------
@@ -183,6 +197,28 @@ def get_afericao_service(
     )
 
 
+def get_alerta_service(alerta_repo: AlertaRepoDep) -> AlertaService:
+    return AlertaService(alerta_repo)
+
+
+def get_motor_service(
+    leira_repo: LeiraRepoDep,
+    afericao_repo: AfericaoRepoDep,
+    alerta_repo: AlertaRepoDep,
+    settings: SettingsDep,
+) -> MotorDeAlertasService:
+    return MotorDeAlertasService(
+        leira_repo,
+        afericao_repo,
+        alerta_repo,
+        parametros_do_motor(
+            settings.temperatura_termofilica_minima,
+            settings.prazo_fase_termofilica_horas,
+            settings.queda_brusca_delta_celsius,
+        ),
+    )
+
+
 AutenticacaoServiceDep = Annotated[AutenticacaoService, Depends(get_autenticacao_service)]
 UsinaServiceDep = Annotated[UsinaService, Depends(get_usina_service)]
 UsuarioServiceDep = Annotated[UsuarioService, Depends(get_usuario_service)]
@@ -190,6 +226,8 @@ LeiraServiceDep = Annotated[LeiraService, Depends(get_leira_service)]
 ResiduoServiceDep = Annotated[ResiduoService, Depends(get_residuo_service)]
 TracoServiceDep = Annotated[TracoService, Depends(get_traco_service)]
 AfericaoServiceDep = Annotated[AfericaoService, Depends(get_afericao_service)]
+AlertaServiceDep = Annotated[AlertaService, Depends(get_alerta_service)]
+MotorServiceDep = Annotated[MotorDeAlertasService, Depends(get_motor_service)]
 
 
 # ---------------------------------------------------------------------------

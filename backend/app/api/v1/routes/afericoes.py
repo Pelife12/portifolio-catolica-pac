@@ -4,7 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Query, Response, status
 
-from app.api.deps import AfericaoServiceDep, UsuarioAtualDep
+from app.api.deps import AfericaoServiceDep, MotorServiceDep, UsuarioAtualDep
 from app.application.dto.afericao import AfericaoCriar, AfericaoResponse
 
 router = APIRouter(prefix="/afericoes", tags=["Aferições"])
@@ -14,6 +14,7 @@ router = APIRouter(prefix="/afericoes", tags=["Aferições"])
 async def registrar_afericao(
     dados: AfericaoCriar,
     servico: AfericaoServiceDep,
+    motor: MotorServiceDep,
     usuario_atual: UsuarioAtualDep,
     response: Response,
 ) -> AfericaoResponse:
@@ -21,6 +22,9 @@ async def registrar_afericao(
     afericao, criada = await servico.registrar(dados, usuario_id=usuario_atual.id)
     # 201 quando registrada; 200 quando o id_cliente já existia (idempotência).
     response.status_code = status.HTTP_201_CREATED if criada else status.HTTP_200_OK
+    # RF03: só reavalia a leira quando a coleta é nova (evita retrabalho em reenvios).
+    if criada:
+        await motor.avaliar_leira(afericao.leira_id)
     return afericao
 
 
