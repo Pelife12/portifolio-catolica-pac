@@ -42,6 +42,8 @@ class Settings(BaseSettings):
     janela_retroativa_horas: int = Field(default=24)
     temperatura_termofilica_minima: float = Field(default=55.0)
     prazo_fase_termofilica_horas: int = Field(default=72)
+    # Queda considerada "brusca" entre duas aferições consecutivas (RF03).
+    queda_brusca_delta_celsius: float = Field(default=10.0)
 
 
 @lru_cache
