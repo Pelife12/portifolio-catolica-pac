@@ -1,5 +1,7 @@
 /** Lista das leiras da usina — tela inicial do operador. */
 
+import { Link, useNavigate } from 'react-router-dom'
+
 import type { Leira } from '@/aplicacao/contratos/tipos'
 import { usarLeiras } from '@/aplicacao/hooks/usar-leiras'
 import { diasDesde, formatarData, formatarMassa, formatarNumero } from '@/dominio/formatacao'
@@ -9,7 +11,9 @@ import { AvisoDeCarregamento, ListaEsqueleto } from '@/ui/componentes/Carregando
 import { Cartao } from '@/ui/componentes/Cartao'
 import { EstadoVazio } from '@/ui/componentes/EstadoVazio'
 import { FaixaDeErro } from '@/ui/componentes/FaixaDeErro'
+import { Botao } from '@/ui/componentes/Botao'
 import { Selo, type TomDoSelo } from '@/ui/componentes/Selo'
+import { CAMINHOS } from '@/ui/rotas/caminhos'
 
 const TOM_POR_STATUS: Record<Leira['status'], TomDoSelo> = {
   em_montagem: 'neutro',
@@ -19,6 +23,7 @@ const TOM_POR_STATUS: Record<Leira['status'], TomDoSelo> = {
 }
 
 export function Leiras() {
+  const navegar = useNavigate()
   const { data: leiras, isPending, isError, error, refetch } = usarLeiras()
 
   return (
@@ -28,6 +33,7 @@ export function Leiras() {
           <h1>Leiras</h1>
           <p className="texto-secundario">Pátio em acompanhamento</p>
         </div>
+        <Botao onClick={() => navegar(CAMINHOS.novaLeira)}>Nova leira</Botao>
       </div>
 
       {isPending ? (
@@ -47,8 +53,16 @@ export function Leiras() {
       ) : null}
 
       {leiras && leiras.length === 0 ? (
-        <EstadoVazio titulo="Nenhuma leira cadastrada">
-          As leiras aparecem aqui assim que forem montadas no pátio.
+        <EstadoVazio
+          titulo="Nenhuma leira cadastrada"
+          acao={
+            <Link className="botao" to={CAMINHOS.novaLeira}>
+              Cadastrar a primeira leira
+            </Link>
+          }
+        >
+          Cadastre a leira com a composição da mistura para o sistema calcular o
+          traço e começar a acompanhar o ciclo.
         </EstadoVazio>
       ) : null}
 

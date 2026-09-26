@@ -5,6 +5,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { CascaDoApp } from '@/ui/layout/CascaDoApp'
 import { Leiras } from '@/ui/paginas/Leiras'
 import { Login } from '@/ui/paginas/Login'
+import { NovaLeira } from '@/ui/paginas/NovaLeira'
 
 import { CAMINHOS } from './caminhos'
 import { RotaProtegida } from './RotaProtegida'
@@ -17,6 +18,7 @@ export function Rotas() {
       <Route element={<RotaProtegida />}>
         <Route element={<CascaDoApp />}>
           <Route path={CAMINHOS.leiras} element={<Leiras />} />
+          <Route path={CAMINHOS.novaLeira} element={<NovaLeira />} />
         </Route>
       </Route>
 
