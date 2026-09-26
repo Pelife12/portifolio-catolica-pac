@@ -1,0 +1,392 @@
+/*
+ * Biblioteca de componentes de campo (RNF03).
+ *
+ * Premissas: dedo com luva, tela sob sol, uma mão ocupada segurando o
+ * termômetro. Por isso alvos grandes, poucos elementos por linha e feedback
+ * tátil no :active.
+ */
+
+/* ---------- Botão ---------- */
+
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--esp-2);
+  min-height: var(--alvo-min);
+  padding: 0 var(--esp-5);
+  border: 1px solid transparent;
+  border-radius: var(--raio);
+  background: var(--acento);
+  color: var(--acento-fg);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.06s ease, background-color 0.12s ease;
+  touch-action: manipulation;
+}
+
+.botao:active:not(:disabled) {
+  background: var(--acento-pressionado);
+  /* Empurrão físico: confirma o toque mesmo com luva grossa. */
+  transform: translateY(1px);
+}
+
+.botao:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.botao--secundario {
+  background: var(--superficie);
+  border-color: var(--linha);
+  color: var(--fg);
+  font-weight: 500;
+}
+
+.botao--secundario:active:not(:disabled) {
+  background: var(--fundo);
+}
+
+.botao--perigo {
+  background: var(--perigo);
+  color: var(--sobre-semantico);
+}
+
+.botao--texto {
+  min-height: 40px;
+  padding: 0 var(--esp-2);
+  background: transparent;
+  color: var(--acento);
+  font-weight: 500;
+}
+
+.botao--grande {
+  min-height: 60px;
+  font-size: 18px;
+}
+
+.botao--bloco {
+  width: 100%;
+}
+
+/* ---------- Campos ---------- */
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+
+.campo__controle {
+  width: 100%;
+  min-height: var(--alvo-min);
+  padding: 0 var(--esp-3);
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-interno);
+  background: var(--fundo);
+  color: var(--fg);
+  font-size: 16px; /* 16px evita o zoom automático do iOS ao focar. */
+}
+
+.campo__controle--numerico {
+  max-width: 140px;
+  min-height: 56px;
+  font-size: 26px;
+  font-weight: 600;
+  text-align: center;
+  font-family: var(--fonte-mono);
+}
+
+.campo__controle:disabled {
+  opacity: 0.6;
+}
+
+.campo__controle[aria-invalid='true'] {
+  border-color: var(--perigo);
+}
+
+.campo__auxiliar {
+  font-size: 13px;
+  color: var(--fg2);
+}
+
+.campo__auxiliar--erro {
+  color: var(--perigo);
+  font-weight: 500;
+}
+
+.campo__linha {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+}
+
+/* ---------- Cartão ---------- */
+
+.cartao {
+  background: var(--superficie);
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  padding: var(--esp-5);
+}
+
+.cartao--compacto {
+  padding: var(--esp-4);
+}
+
+.cartao--clicavel {
+  display: block;
+  width: 100%;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.cartao--clicavel:active {
+  background: var(--fundo);
+}
+
+.cartao--critico {
+  border-color: var(--perigo);
+}
+
+.cartao--atencao {
+  border-color: var(--atencao);
+}
+
+.cartao__titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+}
+
+/* ---------- Selo ---------- */
+
+.selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-family: var(--fonte-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.selo--neutro {
+  color: var(--fg2);
+}
+
+.selo--ok {
+  color: var(--ok);
+}
+
+.selo--atencao {
+  color: var(--atencao);
+}
+
+.selo--perigo {
+  color: var(--perigo);
+}
+
+.selo--acento {
+  color: var(--acento);
+}
+
+/* ---------- Contador de temperatura ---------- */
+
+.contador {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+  margin-top: var(--esp-4);
+}
+
+.contador__passo {
+  width: var(--alvo-grande);
+  height: var(--alvo-grande);
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--linha);
+  border-radius: 18px;
+  background: var(--fundo);
+  color: var(--fg);
+  font-size: 34px;
+  line-height: 1;
+  cursor: pointer;
+  /* Sem seleção de texto: o toque longo não deve marcar o "+" nem abrir menu. */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+
+.contador__passo:active:not(:disabled) {
+  background: var(--casca);
+  transform: translateY(1px);
+}
+
+.contador__passo:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.contador__leitura {
+  flex: 1;
+  text-align: center;
+}
+
+.contador__valor {
+  font-size: 52px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.contador__valor--ok {
+  color: var(--ok);
+}
+
+.contador__valor--atencao {
+  color: var(--atencao);
+}
+
+.contador__valor--perigo {
+  color: var(--perigo);
+}
+
+.contador__unidade {
+  margin-top: 2px;
+  font-size: 14px;
+  color: var(--fg2);
+}
+
+.contador__nota {
+  margin-top: var(--esp-3);
+  text-align: center;
+  font-size: 13px;
+  color: var(--fg2);
+}
+
+/* ---------- Estados de erro e vazio ---------- */
+
+.faixa-erro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+  padding: var(--esp-4);
+  border: 1px solid var(--perigo);
+  border-radius: var(--raio);
+  background: var(--superficie);
+}
+
+.faixa-erro__titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  color: var(--perigo);
+  font-weight: 600;
+}
+
+.faixa-erro__texto {
+  font-size: 13px;
+  color: var(--fg2);
+  line-height: 1.45;
+}
+
+.faixa-erro__acoes {
+  display: flex;
+  gap: var(--esp-2);
+  margin-top: var(--esp-1);
+}
+
+.faixa-erro--atencao {
+  border-color: var(--atencao);
+}
+
+.faixa-erro--atencao .faixa-erro__titulo {
+  color: var(--atencao);
+}
+
+.estado-vazio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--esp-3);
+  padding: var(--esp-6) var(--esp-5);
+  border: 1px dashed var(--linha);
+  border-radius: var(--raio);
+  text-align: center;
+  color: var(--fg2);
+}
+
+.estado-vazio__titulo {
+  color: var(--fg);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.estado-vazio__texto {
+  font-size: 14px;
+  max-width: 34ch;
+}
+
+/* ---------- Carregando ---------- */
+
+.esqueleto {
+  border-radius: var(--raio-interno);
+  background: linear-gradient(90deg, var(--fundo), var(--casca), var(--fundo));
+  background-size: 200% 100%;
+  animation: esqueleto-desliza 1.2s linear infinite;
+}
+
+@keyframes esqueleto-desliza {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.esqueleto-lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+}
+
+/* ---------- Utilitários de pilha ---------- */
+
+.pilha {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+}
+
+.pilha--curta {
+  gap: var(--esp-2);
+}
+
+.linha {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+}
+
+.linha--entre {
+  justify-content: space-between;
+}
+
+.linha--envolver {
+  flex-wrap: wrap;
+}
