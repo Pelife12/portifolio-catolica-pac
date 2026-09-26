@@ -103,6 +103,17 @@ function ItemDeLeira({ leira }: { leira: Leira }) {
           </span>
         ) : null}
       </div>
+
+      {/* Leira encerrada não recebe coleta: o ciclo já foi laudado. */}
+      {leira.status !== 'encerrada' ? (
+        <Link
+          className="botao botao--bloco"
+          style={{ marginTop: 'var(--esp-4)' }}
+          to={CAMINHOS.novaAfericao(leira.id)}
+        >
+          Registrar aferição
+        </Link>
+      ) : null}
     </Cartao>
   )
 }
