@@ -6,15 +6,25 @@
  * numéricos vindos da API são tipados como `string` e convertidos na borda.
  */
 
-export type PapelUsuario = 'administrador' | 'gestor' | 'operador'
-export type CategoriaResiduo = 'rico_em_carbono' | 'rico_em_nitrogenio'
-export type StatusLeira = 'em_montagem' | 'ativa' | 'em_maturacao' | 'encerrada'
-export type TipoAlerta =
-  | 'nao_atingiu_termofilica'
-  | 'queda_brusca_temperatura'
-  | 'umidade_fora_da_faixa'
-export type SeveridadeAlerta = 'informativo' | 'atencao' | 'critico'
-export type StatusAlerta = 'aberto' | 'reconhecido' | 'resolvido'
+// As enumerações são vocabulário de negócio e moram no domínio; os contratos
+// apenas as reexportam para quem consome a API.
+export type {
+  CategoriaResiduo,
+  PapelUsuario,
+  SeveridadeAlerta,
+  StatusAlerta,
+  StatusLeira,
+  TipoAlerta,
+} from '@/dominio/enums'
+
+import type {
+  CategoriaResiduo,
+  PapelUsuario,
+  SeveridadeAlerta,
+  StatusAlerta,
+  StatusLeira,
+  TipoAlerta,
+} from '@/dominio/enums'
 
 export interface Token {
   access_token: string

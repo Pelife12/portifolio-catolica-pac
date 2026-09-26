@@ -7,7 +7,7 @@ import type {
   StatusAlerta,
   StatusLeira,
   TipoAlerta,
-} from '@/aplicacao/contratos/tipos'
+} from './enums'
 
 export const ROTULO_STATUS_LEIRA: Record<StatusLeira, string> = {
   em_montagem: 'Em montagem',

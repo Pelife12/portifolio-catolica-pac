@@ -83,7 +83,10 @@ function ItemDeLeira({ leira }: { leira: Leira }) {
   return (
     <Cartao compacto>
       <div className="leira-item__topo">
-        <span className="leira-item__codigo">{leira.codigo}</span>
+        {/* O código leva ao histórico da leira. */}
+        <Link className="leira-item__codigo" to={CAMINHOS.leira(leira.id)}>
+          {leira.codigo}
+        </Link>
         <Selo tom={TOM_POR_STATUS[leira.status]}>{ROTULO_STATUS_LEIRA[leira.status]}</Selo>
       </div>
 

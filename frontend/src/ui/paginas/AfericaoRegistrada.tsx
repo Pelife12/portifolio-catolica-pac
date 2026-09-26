@@ -93,6 +93,9 @@ export function AfericaoRegistrada() {
                 {ROTULO_TIPO_ALERTA[alerta.tipo]} · {alerta.mensagem}
               </p>
             ))}
+            <Link className="botao botao--texto" to={CAMINHOS.alertas}>
+              Ver central de alertas
+            </Link>
           </div>
         </Cartao>
       ) : null}

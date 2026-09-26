@@ -1,7 +1,8 @@
 import { fileURLToPath, URL } from 'node:url'
 
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+// defineConfig vem do vitest para o bloco `test` ser reconhecido nos tipos.
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   plugins: [react()],
