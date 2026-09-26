@@ -1,0 +1,186 @@
+/*
+ * Casca do aplicativo.
+ *
+ * Mobile-first: uma coluna, cabeçalho fixo e navegação inferior ao alcance do
+ * polegar. A partir de 900px a mesma casca vira o painel de gestão, com a
+ * navegação migrando para o topo.
+ */
+
+.casca {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh; /* dvh: a barra de endereço do iOS não corta a tela. */
+  background: var(--casca);
+}
+
+.casca__topo {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  padding: max(env(safe-area-inset-top), var(--esp-4)) var(--esp-4) var(--esp-3);
+  background: var(--casca);
+  border-bottom: 1px solid var(--linha);
+}
+
+.casca__identidade {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  min-width: 0;
+  flex: 1;
+}
+
+.casca__marca {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--raio-interno);
+  background: var(--acento);
+  color: var(--acento-fg);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.casca__titulo {
+  min-width: 0;
+}
+
+.casca__titulo h1 {
+  font-size: 17px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.casca__subtitulo {
+  font-family: var(--fonte-mono);
+  font-size: 12px;
+  color: var(--fg2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.casca__conteudo {
+  flex: 1;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--esp-4) var(--esp-4) var(--esp-6);
+}
+
+.casca__navegacao {
+  position: sticky;
+  bottom: 0;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: var(--esp-1);
+  padding: var(--esp-2) var(--esp-2) max(env(safe-area-inset-bottom), var(--esp-2));
+  background: var(--superficie);
+  border-top: 1px solid var(--linha);
+}
+
+.casca__aba {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 56px;
+  border: none;
+  border-radius: var(--raio-interno);
+  background: transparent;
+  color: var(--fg2);
+  font-family: var(--fonte-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.casca__aba[aria-current='page'] {
+  background: var(--fundo);
+  color: var(--acento);
+  font-weight: 500;
+}
+
+.casca__aba__marcador {
+  position: absolute;
+  transform: translate(14px, -12px);
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--perigo);
+  color: var(--sobre-semantico);
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+}
+
+/* Aviso de rede: aparece só quando o aparelho está sem conexão. */
+.faixa-offline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--esp-2);
+  padding: 6px var(--esp-4);
+  background: var(--atencao);
+  color: var(--sobre-semantico);
+  font-family: var(--fonte-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+/* Casca da autenticação: centrada, sem navegação. */
+.casca-auth {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: var(--esp-5);
+  background: var(--casca);
+}
+
+.casca-auth__caixa {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+@media (min-width: 900px) {
+  .casca__topo {
+    padding: var(--esp-4) var(--esp-6);
+  }
+
+  .casca__conteudo {
+    max-width: 1100px;
+    padding: var(--esp-6);
+  }
+
+  /* No desktop a navegação volta para o topo, junto do cabeçalho. */
+  .casca__navegacao {
+    position: static;
+    grid-auto-columns: auto;
+    justify-content: start;
+    gap: var(--esp-2);
+    padding: var(--esp-2) var(--esp-6);
+    border-top: none;
+    border-bottom: 1px solid var(--linha);
+    background: var(--casca);
+  }
+
+  .casca__aba {
+    flex-direction: row;
+    gap: var(--esp-2);
+    min-height: 44px;
+    padding: 0 var(--esp-4);
+  }
+}
