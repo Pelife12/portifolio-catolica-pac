@@ -1,0 +1,68 @@
+# Ambiente de homologação: as três peças como iriam para o servidor.
+#
+# Diferenças em relação ao docker-compose.yml de desenvolvimento:
+# - a API roda sem --reload e sem o código montado como volume;
+# - o PWA é o build de produção servido por nginx (Service Worker ativo);
+# - o segredo do JWT é obrigatório: o compose não sobe sem ele.
+#
+# Uso:
+#   JWT_SEGREDO=$(openssl rand -hex 32) docker compose -f docker-compose.homologacao.yml up --build -d
+#   PWA em http://localhost:8080 · API em http://localhost:8000/docs
+
+name: aferra-homologacao
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-compostagem}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-compostagem}
+      POSTGRES_DB: ${POSTGRES_DB:-compostagem}
+      TZ: America/Sao_Paulo
+    volumes:
+      - postgres_homologacao:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-compostagem} -d ${POSTGRES_DB:-compostagem}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-compostagem}:${POSTGRES_PASSWORD:-compostagem}@db:5432/${POSTGRES_DB:-compostagem}
+      AMBIENTE: homologacao
+      DEBUG: "false"
+      JWT_SEGREDO: ${JWT_SEGREDO:?defina JWT_SEGREDO para subir a homologação}
+      ORIGENS_PERMITIDAS: '["${URL_DO_PWA:-http://localhost:8080}"]'
+      TZ: America/Sao_Paulo
+    ports:
+      - "${API_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/api/v1/saude || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${URL_DA_API:-http://localhost:8000/api/v1}
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${PWA_PORT:-8080}:80"
+
+volumes:
+  postgres_homologacao:

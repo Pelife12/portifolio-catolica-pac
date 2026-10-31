@@ -10,7 +10,7 @@ from uuid import UUID
 
 from app.application.dto.afericao import AfericaoCriar, AfericaoResponse
 from app.application.ports.repositorios import AfericaoRepository, LeiraRepository
-from app.domain.exceptions import RecursoNaoEncontrado
+from app.domain.exceptions import EntidadeDuplicada, RecursoNaoEncontrado
 from app.domain.services.validacao_temporal import validar_janela_de_afericao
 from app.infrastructure.database.models.afericao import Afericao
 
@@ -57,7 +57,20 @@ class AfericaoService:
             longitude=dados.longitude,
             id_cliente=dados.id_cliente,
         )
-        afericao = await self._repo.adicionar(afericao)
+        try:
+            afericao = await self._repo.adicionar(afericao)
+        except EntidadeDuplicada:
+            # Corrida entre dois envios do mesmo id_cliente que passaram juntos
+            # pela checagem acima: o perdedor devolve o registro do vencedor,
+            # mantendo a mesma resposta idempotente de um reenvio comum.
+            existente = (
+                await self._repo.obter_por_id_cliente(dados.id_cliente)
+                if dados.id_cliente is not None
+                else None
+            )
+            if existente is None:
+                raise
+            return AfericaoResponse.model_validate(existente), False
         return AfericaoResponse.model_validate(afericao), True
 
     async def listar(

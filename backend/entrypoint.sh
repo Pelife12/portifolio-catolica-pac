@@ -6,5 +6,12 @@ set -e
 echo "Aplicando migrations (alembic upgrade head)..."
 alembic upgrade head
 
-echo "Iniciando a API..."
-exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+# --reload só em desenvolvimento: em homologação o código não muda em execução
+# e o reloader só consumiria recursos.
+if [ "${AMBIENTE:-desenvolvimento}" = "desenvolvimento" ]; then
+    echo "Iniciando a API (desenvolvimento, com reload)..."
+    exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+fi
+
+echo "Iniciando a API (${AMBIENTE})..."
+exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2 --proxy-headers
