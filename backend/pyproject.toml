@@ -16,6 +16,8 @@ dependencies = [
     "pyjwt>=2.9",
     "passlib[bcrypt]>=1.7.4",
     "bcrypt<4.1",
+    "reportlab>=4.2",
+    "tzdata>=2024.2",
 ]
 
 [project.optional-dependencies]

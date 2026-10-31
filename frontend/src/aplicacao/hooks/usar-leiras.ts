@@ -9,6 +9,7 @@ import type {
   ResultadoDoTraco,
 } from '@/aplicacao/contratos/tipos'
 import { usarDependencias } from '@/aplicacao/dependencias'
+import { salvarArquivo } from '@/infraestrutura/arquivos/salvar-arquivo'
 
 import { chaves } from './chaves'
 
@@ -72,5 +73,16 @@ export function usarCalcularTraco() {
   const { leiras } = usarDependencias()
   return useMutation<ResultadoDoTraco, Error, ItemDeComposicao[]>({
     mutationFn: (itens) => leiras.calcularTraco(itens),
+  })
+}
+
+/** Emite o laudo da leira (RF04) e entrega o PDF para salvar. */
+export function usarEmitirLaudo() {
+  const { leiras } = usarDependencias()
+  return useMutation({
+    mutationFn: async (leira: Pick<Leira, 'id' | 'codigo'>) => {
+      const { arquivo, nomeDoArquivo } = await leiras.emitirLaudo(leira.id)
+      salvarArquivo(arquivo, nomeDoArquivo ?? `laudo-${leira.codigo}.pdf`)
+    },
   })
 }

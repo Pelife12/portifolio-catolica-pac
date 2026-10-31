@@ -10,3 +10,6 @@ alembic>=1.14
 pyjwt>=2.9
 passlib[bcrypt]>=1.7.4
 bcrypt<4.1
+reportlab>=4.2
+# Fusos horários do laudo (zoneinfo) mesmo em imagens sem a base do sistema.
+tzdata>=2024.2

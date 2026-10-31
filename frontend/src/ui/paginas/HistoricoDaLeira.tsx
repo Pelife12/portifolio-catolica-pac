@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { usarAfericoes } from '@/aplicacao/hooks/usar-afericoes'
 import { usarAlertas } from '@/aplicacao/hooks/usar-alertas'
-import { usarLeira } from '@/aplicacao/hooks/usar-leiras'
+import { usarEmitirLaudo, usarLeira } from '@/aplicacao/hooks/usar-leiras'
 import { resumirCiclo } from '@/dominio/ciclo'
 import { TEMPERATURA_TERMOFILICA_MINIMA } from '@/dominio/faixas'
 import {
@@ -17,6 +17,7 @@ import {
 import { ROTULO_STATUS_LEIRA, ROTULO_TIPO_ALERTA } from '@/dominio/rotulos'
 import { formatarTemperatura } from '@/dominio/temperatura'
 import { descreverErro } from '@/infraestrutura/http/erros'
+import { Botao } from '@/ui/componentes/Botao'
 import { Cartao } from '@/ui/componentes/Cartao'
 import { Esqueleto, ListaEsqueleto } from '@/ui/componentes/Carregando'
 import { EstadoVazio } from '@/ui/componentes/EstadoVazio'
@@ -33,6 +34,7 @@ export function HistoricoDaLeira() {
   const leira = usarLeira(leiraId)
   const afericoes = usarAfericoes(leiraId)
   const alertas = usarAlertas({ leiraId })
+  const emitirLaudo = usarEmitirLaudo()
 
   const resumo =
     leira.data && afericoes.data
@@ -68,12 +70,32 @@ export function HistoricoDaLeira() {
               : 'Carregando…'}
           </p>
         </div>
-        {leira.data && leira.data.status !== 'encerrada' ? (
-          <Link className="botao" to={CAMINHOS.novaAfericao(leira.data.id)}>
-            Aferir
-          </Link>
-        ) : null}
+        <div className="linha">
+          {leira.data ? (
+            <Botao
+              variante="secundario"
+              carregando={emitirLaudo.isPending}
+              textoCarregando="Gerando…"
+              onClick={() => leira.data && emitirLaudo.mutate(leira.data)}
+            >
+              Laudo PDF
+            </Botao>
+          ) : null}
+          {leira.data && leira.data.status !== 'encerrada' ? (
+            <Link className="botao" to={CAMINHOS.novaAfericao(leira.data.id)}>
+              Aferir
+            </Link>
+          ) : null}
+        </div>
       </div>
+
+      {emitirLaudo.isError ? (
+        <div style={{ marginBottom: 'var(--esp-4)' }}>
+          <FaixaDeErro titulo="Não foi possível emitir o laudo">
+            {descreverErro(emitirLaudo.error)}
+          </FaixaDeErro>
+        </div>
+      ) : null}
 
       {leira.isError ? (
         <FaixaDeErro

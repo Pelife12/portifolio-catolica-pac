@@ -38,6 +38,11 @@ export class LeirasApi {
     return this.http.requisitar<ItemDaComposicaoSalva[]>(`/leiras/${leiraId}/composicao`)
   }
 
+  /** RF04: laudo de rastreabilidade em PDF, gerado na hora pelo backend. */
+  emitirLaudo(leiraId: string): Promise<{ arquivo: Blob; nomeDoArquivo: string | null }> {
+    return this.http.baixar(`/leiras/${leiraId}/laudo`)
+  }
+
   /** Cálculo avulso, sem persistir: alimenta o traço em tempo real na tela. */
   calcularTraco(itens: ItemDeComposicao[]): Promise<ResultadoDoTraco> {
     return this.http.requisitar<ResultadoDoTraco>('/calculos/traco', {

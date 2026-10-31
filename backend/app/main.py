@@ -43,8 +43,8 @@ def criar_app() -> FastAPI:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
-        # O PWA lê a duração da resposta (RNF02) a partir deste cabeçalho.
-        expose_headers=["Server-Timing"],
+        # Cabeçalhos lidos pelo PWA: duração da resposta (RNF02) e dados do laudo (RF04).
+        expose_headers=["Server-Timing", "Content-Disposition", "X-Laudo-Numero", "X-Laudo-Hash"],
     )
 
     registrar_medidor_de_tempo(app, settings.teto_tempo_resposta_ms)

@@ -14,16 +14,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.application.ports.repositorios import (
     AfericaoRepository,
     AlertaRepository,
+    AuditoriaRepository,
     LeiraRepository,
     LeiraResiduoRepository,
     ResiduoRepository,
     UsinaRepository,
     UsuarioRepository,
 )
+from app.application.ports.relatorios import GeradorDeLaudo
 from app.application.ports.seguranca import GeradorDeToken, HashDeSenha
 from app.application.services.afericao_service import AfericaoService
 from app.application.services.alerta_service import AlertaService
 from app.application.services.autenticacao_service import AutenticacaoService
+from app.application.services.laudo_service import LaudoService
 from app.application.services.leira_service import LeiraService
 from app.application.services.motor_de_alertas_service import (
     MotorDeAlertasService,
@@ -45,8 +48,12 @@ from app.infrastructure.database.verificador_de_saude_postgres import (
 from app.infrastructure.repositories.afericao_repository_sqlalchemy import (
     AfericaoRepositorySQLAlchemy,
 )
+from app.infrastructure.relatorios.laudo_pdf_reportlab import GeradorDeLaudoReportLab
 from app.infrastructure.repositories.alerta_repository_sqlalchemy import (
     AlertaRepositorySQLAlchemy,
+)
+from app.infrastructure.repositories.auditoria_repository_sqlalchemy import (
+    AuditoriaRepositorySQLAlchemy,
 )
 from app.infrastructure.repositories.leira_repository_sqlalchemy import (
     LeiraRepositorySQLAlchemy,
@@ -154,6 +161,21 @@ AfericaoRepoDep = Annotated[AfericaoRepository, Depends(get_afericao_repo)]
 AlertaRepoDep = Annotated[AlertaRepository, Depends(get_alerta_repo)]
 
 
+def get_auditoria_repo(session: SessionDep) -> AuditoriaRepository:
+    return AuditoriaRepositorySQLAlchemy(session)
+
+
+AuditoriaRepoDep = Annotated[AuditoriaRepository, Depends(get_auditoria_repo)]
+
+
+@lru_cache
+def get_gerador_de_laudo() -> GeradorDeLaudo:
+    return GeradorDeLaudoReportLab()
+
+
+GeradorDeLaudoDep = Annotated[GeradorDeLaudo, Depends(get_gerador_de_laudo)]
+
+
 # ---------------------------------------------------------------------------
 # Serviços de aplicação
 # ---------------------------------------------------------------------------
@@ -219,6 +241,37 @@ def get_motor_service(
     )
 
 
+def get_laudo_service(
+    leira_repo: LeiraRepoDep,
+    usina_repo: UsinaRepoDep,
+    usuario_repo: UsuarioRepoDep,
+    afericao_repo: AfericaoRepoDep,
+    alerta_repo: AlertaRepoDep,
+    leira_residuo_repo: LeiraResiduoRepoDep,
+    residuo_repo: ResiduoRepoDep,
+    auditoria_repo: AuditoriaRepoDep,
+    gerador: GeradorDeLaudoDep,
+    settings: SettingsDep,
+) -> LaudoService:
+    return LaudoService(
+        leira_repo,
+        usina_repo,
+        usuario_repo,
+        afericao_repo,
+        alerta_repo,
+        leira_residuo_repo,
+        residuo_repo,
+        auditoria_repo,
+        gerador,
+        # Mesmos parâmetros do motor: o laudo não pode usar outra régua.
+        parametros_do_motor(
+            settings.temperatura_termofilica_minima,
+            settings.prazo_fase_termofilica_horas,
+            settings.queda_brusca_delta_celsius,
+        ),
+    )
+
+
 AutenticacaoServiceDep = Annotated[AutenticacaoService, Depends(get_autenticacao_service)]
 UsinaServiceDep = Annotated[UsinaService, Depends(get_usina_service)]
 UsuarioServiceDep = Annotated[UsuarioService, Depends(get_usuario_service)]
@@ -228,6 +281,7 @@ TracoServiceDep = Annotated[TracoService, Depends(get_traco_service)]
 AfericaoServiceDep = Annotated[AfericaoService, Depends(get_afericao_service)]
 AlertaServiceDep = Annotated[AlertaService, Depends(get_alerta_service)]
 MotorServiceDep = Annotated[MotorDeAlertasService, Depends(get_motor_service)]
+LaudoServiceDep = Annotated[LaudoService, Depends(get_laudo_service)]
 
 
 # ---------------------------------------------------------------------------

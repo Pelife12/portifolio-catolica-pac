@@ -8,6 +8,8 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   grande?: boolean
   bloco?: boolean
   carregando?: boolean
+  /** Texto exibido enquanto carrega; o padrão serve aos envios de formulário. */
+  textoCarregando?: string
   children: ReactNode
 }
 
@@ -23,6 +25,7 @@ export function Botao({
   grande = false,
   bloco = false,
   carregando = false,
+  textoCarregando = 'Enviando…',
   disabled,
   className,
   children,
@@ -47,7 +50,7 @@ export function Botao({
       aria-busy={carregando || undefined}
       {...resto}
     >
-      {carregando ? 'Enviando…' : children}
+      {carregando ? textoCarregando : children}
     </button>
   )
 }
