@@ -2,19 +2,22 @@
  * Service Worker do Aferra.
  *
  * Escrito à mão, sem Workbox: as estratégias são poucas e precisam ser lidas e
- * defendidas na banca.
+ * defendidas na banca. Duas responsabilidades:
  *
- * App shell (22/10): o app abre sem conexão depois da primeira visita.
- * - navegação: rede primeiro, cai para o index.html em cache;
- * - /assets/* (nomes com hash do Vite, imutáveis): cache primeiro;
- * - fontes do Google: stale-while-revalidate.
+ * 1. App shell (22/10): o app abre sem conexão depois da primeira visita.
+ *    - navegação: rede primeiro, cai para o index.html em cache;
+ *    - /assets/* (nomes com hash do Vite, imutáveis): cache primeiro;
+ *    - fontes do Google: stale-while-revalidate.
+ * 2. Leitura offline (29/10): GET na API usa rede primeiro e, sem rede, devolve
+ *    a última resposta guardada — a leira continua consultável no pátio.
  */
 
 const VERSAO = 'v1'
 const CACHE_SHELL = `aferra-shell-${VERSAO}`
 const CACHE_ASSETS = `aferra-assets-${VERSAO}`
+const CACHE_API = `aferra-api-${VERSAO}`
 const CACHE_FONTES = `aferra-fontes-${VERSAO}`
-const CACHES_ATUAIS = [CACHE_SHELL, CACHE_ASSETS, CACHE_FONTES]
+const CACHES_ATUAIS = [CACHE_SHELL, CACHE_ASSETS, CACHE_API, CACHE_FONTES]
 
 const SHELL = [
   '/',
@@ -51,6 +54,8 @@ self.addEventListener('activate', (evento) => {
 self.addEventListener('message', (evento) => {
   const tipo = evento.data && evento.data.tipo
   if (tipo === 'ativar-nova-versao') self.skipWaiting()
+  // No logout os dados da usina não podem ficar no aparelho para o próximo usuário.
+  if (tipo === 'limpar-cache-api') evento.waitUntil(caches.delete(CACHE_API))
 })
 
 // ---------------------------------------------------------------------------
@@ -65,6 +70,13 @@ self.addEventListener('fetch', (evento) => {
 
   if (request.mode === 'navigate') {
     evento.respondWith(navegacao(request))
+    return
+  }
+
+  if (url.pathname.includes('/api/v1/')) {
+    // O laudo é gerado na hora e não faz sentido servi-lo velho.
+    if (url.pathname.endsWith('/laudo')) return
+    evento.respondWith(redePrimeiro(request, CACHE_API))
     return
   }
 
@@ -99,6 +111,28 @@ async function cachePrimeiro(request, nomeDoCache) {
   return resposta
 }
 
+async function redePrimeiro(request, nomeDoCache) {
+  const cache = await caches.open(nomeDoCache)
+  try {
+    const resposta = await fetch(request)
+    if (resposta.ok) cache.put(request, resposta.clone())
+    return resposta
+  } catch {
+    const emCache = await cache.match(request)
+    if (emCache) {
+      // Marca a resposta como vinda do cache para a tela poder avisar o operador.
+      const cabecalhos = new Headers(emCache.headers)
+      cabecalhos.set('X-Aferra-Offline', '1')
+      return new Response(await emCache.blob(), {
+        status: emCache.status,
+        statusText: emCache.statusText,
+        headers: cabecalhos,
+      })
+    }
+    return Response.error()
+  }
+}
+
 async function revalidarEmSegundoPlano(request, nomeDoCache) {
   const cache = await caches.open(nomeDoCache)
   const emCache = await cache.match(request)
@@ -110,3 +144,4 @@ async function revalidarEmSegundoPlano(request, nomeDoCache) {
     .catch(() => emCache)
   return emCache || atualizacao
 }
+

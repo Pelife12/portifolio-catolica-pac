@@ -9,4 +9,5 @@ export const CAMINHOS = {
   afericaoRegistrada: (leiraId = ':leiraId') => `/leiras/${leiraId}/afericao/registrada`,
   painel: '/painel',
   alertas: '/alertas',
+  fila: '/fila',
 } as const

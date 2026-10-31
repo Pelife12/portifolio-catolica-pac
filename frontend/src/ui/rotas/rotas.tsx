@@ -4,6 +4,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { CascaDoApp } from '@/ui/layout/CascaDoApp'
 import { AfericaoRegistrada } from '@/ui/paginas/AfericaoRegistrada'
+import { FilaDeEnvio } from '@/ui/paginas/FilaDeEnvio'
 import { Alertas } from '@/ui/paginas/Alertas'
 import { HistoricoDaLeira } from '@/ui/paginas/HistoricoDaLeira'
 import { Leiras } from '@/ui/paginas/Leiras'
@@ -30,6 +31,7 @@ export function Rotas() {
           <Route path={CAMINHOS.afericaoRegistrada()} element={<AfericaoRegistrada />} />
           <Route path={CAMINHOS.painel} element={<Painel />} />
           <Route path={CAMINHOS.alertas} element={<Alertas />} />
+          <Route path={CAMINHOS.fila} element={<FilaDeEnvio />} />
         </Route>
       </Route>
 

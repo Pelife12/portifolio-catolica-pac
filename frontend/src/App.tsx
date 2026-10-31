@@ -17,6 +17,9 @@ function criarQueryClient(): QueryClient {
         retry: (tentativas, erro) => !(erro instanceof ErroDeApi) && tentativas < 2,
         staleTime: 30_000,
         refetchOnWindowFocus: true,
+        // offlineFirst: a consulta é tentada mesmo sem rede, para o Service Worker
+        // poder responder com a última cópia da API (leitura offline da leira).
+        networkMode: 'offlineFirst',
       },
       mutations: { retry: false },
     },

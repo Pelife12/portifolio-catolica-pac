@@ -196,3 +196,7 @@
   border-bottom: 1px solid var(--linha);
   font-size: 14px;
 }
+
+.casca__aba__marcador--atencao {
+  background: var(--atencao);
+}
