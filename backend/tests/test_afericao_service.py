@@ -9,7 +9,11 @@ import pytest
 from app.application.dto.afericao import AfericaoCriar
 from app.application.ports.repositorios import AfericaoRepository, LeiraRepository
 from app.application.services.afericao_service import AfericaoService
-from app.domain.exceptions import AfericaoForaDaJanela, RecursoNaoEncontrado
+from app.domain.exceptions import (
+    AfericaoForaDaJanela,
+    EntidadeDuplicada,
+    RecursoNaoEncontrado,
+)
 from app.infrastructure.database.models.afericao import Afericao
 
 
@@ -108,4 +112,47 @@ async def test_reenvio_com_mesmo_id_cliente_e_idempotente():
 
     assert criada1 is True
     assert criada2 is False  # segundo envio não cria novo registro
+    assert len(repo.itens) == 1
+
+
+class AfericaoRepoComCorrida(AfericaoRepoFake):
+    """Simula o reenvio simultâneo: o outro envio grava entre a checagem e o INSERT."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._consultas = 0
+
+    async def obter_por_id_cliente(self, id_cliente):
+        self._consultas += 1
+        # Na primeira consulta (checagem de idempotência) o registro ainda não existe.
+        if self._consultas == 1:
+            return None
+        return await super().obter_por_id_cliente(id_cliente)
+
+    async def adicionar(self, afericao):
+        vencedor = Afericao(
+            leira_id=afericao.leira_id,
+            usuario_id=afericao.usuario_id,
+            temperatura_celsius=afericao.temperatura_celsius,
+            umidade_percentual=afericao.umidade_percentual,
+            registrado_em=afericao.registrado_em,
+            latitude=afericao.latitude,
+            longitude=afericao.longitude,
+            id_cliente=afericao.id_cliente,
+        )
+        await super().adicionar(vencedor)
+        raise EntidadeDuplicada("id_cliente repetido")
+
+
+async def test_reenvio_simultaneo_devolve_o_registro_vencedor_sem_erro():
+    repo = AfericaoRepoComCorrida()
+    servico = _servico(repo)
+    id_cliente = uuid.uuid4()
+
+    afericao, criada = await servico.registrar(
+        _dados(datetime.now(UTC), id_cliente=id_cliente), usuario_id=uuid.uuid4()
+    )
+
+    assert criada is False
+    assert afericao.id_cliente == id_cliente
     assert len(repo.itens) == 1

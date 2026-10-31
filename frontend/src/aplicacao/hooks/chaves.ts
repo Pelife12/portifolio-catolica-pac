@@ -6,6 +6,7 @@ export const chaves = {
   leira: (leiraId: string) => ['leira', leiraId] as const,
   composicao: (leiraId: string) => ['leira', leiraId, 'composicao'] as const,
   residuos: ['residuos'] as const,
+  fila: ['fila-de-afericoes'] as const,
   afericoes: (leiraId?: string) => ['afericoes', leiraId ?? 'todas'] as const,
   alertas: (leiraId?: string, status?: string) =>
     ['alertas', leiraId ?? 'todas', status ?? 'todos'] as const,

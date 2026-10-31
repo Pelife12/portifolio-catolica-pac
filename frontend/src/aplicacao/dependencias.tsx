@@ -14,8 +14,14 @@ import { AutenticacaoApi } from '@/aplicacao/api/autenticacao-api'
 import { LeirasApi } from '@/aplicacao/api/leiras-api'
 import { ResiduosApi } from '@/aplicacao/api/residuos-api'
 import type { ArmazenamentoDeSessao } from '@/aplicacao/portas/armazenamento-de-sessao'
+import type { FilaDeAfericoes } from '@/aplicacao/portas/fila-de-afericoes'
 import type { Localizador } from '@/aplicacao/portas/localizador'
 import { GerenciadorDeSessao } from '@/aplicacao/sessao/gerenciador-de-sessao'
+import { SincronizadorDeFila } from '@/aplicacao/sincronizacao/sincronizador-de-fila'
+import { indexedDbDisponivel } from '@/infraestrutura/armazenamento/banco-local'
+import { FilaEmMemoria } from '@/infraestrutura/armazenamento/fila-em-memoria'
+import { FilaIndexedDb } from '@/infraestrutura/armazenamento/fila-indexeddb'
+import { SessaoEspelhadaNoBancoLocal } from '@/infraestrutura/armazenamento/sessao-espelhada'
 import { SessaoLocalStorage } from '@/infraestrutura/armazenamento/sessao-local-storage'
 import { LocalizadorDoNavegador } from '@/infraestrutura/geolocalizacao/localizador-do-navegador'
 import { ClienteHttp } from '@/infraestrutura/http/cliente-http'
@@ -28,6 +34,8 @@ export interface Dependencias {
   residuos: ResiduosApi
   afericoes: AfericoesApi
   alertas: AlertasApi
+  fila: FilaDeAfericoes
+  sincronizador: SincronizadorDeFila
 }
 
 const URL_API_PADRAO = 'http://localhost:8000/api/v1'
@@ -37,18 +45,31 @@ export function montarDependencias(
     urlBase: string
     armazenamento: ArmazenamentoDeSessao
     localizador: Localizador
+    fila: FilaDeAfericoes
   }> = {},
 ): Dependencias {
-  const armazenamento = sobrescritas.armazenamento ?? new SessaoLocalStorage()
+  const urlBase: string = sobrescritas.urlBase ?? import.meta.env.VITE_API_URL ?? URL_API_PADRAO
+  // Com IndexedDB, o token é espelhado para o Service Worker enviar a fila com o
+  // app fechado (Background Sync).
+  const armazenamento =
+    sobrescritas.armazenamento ??
+    (indexedDbDisponivel()
+      ? new SessaoEspelhadaNoBancoLocal(new SessaoLocalStorage(), urlBase)
+      : new SessaoLocalStorage())
   const sessao = new GerenciadorDeSessao(armazenamento)
 
   const http = new ClienteHttp({
-    urlBase: sobrescritas.urlBase ?? import.meta.env.VITE_API_URL ?? URL_API_PADRAO,
+    urlBase,
     obterToken: sessao.obterToken,
     // 401 vindo da API significa token inválido ou expirado: derruba a sessão
     // e a RotaProtegida devolve o operador para o login.
     aoExpirarSessao: sessao.encerrar,
   })
+
+  const afericoes = new AfericoesApi(http)
+  // Sem IndexedDB a fila vive só na memória da aba: pior que persistir, melhor que perder.
+  const fila =
+    sobrescritas.fila ?? (indexedDbDisponivel() ? new FilaIndexedDb() : new FilaEmMemoria())
 
   return {
     sessao,
@@ -56,8 +77,10 @@ export function montarDependencias(
     autenticacao: new AutenticacaoApi(http),
     leiras: new LeirasApi(http),
     residuos: new ResiduosApi(http),
-    afericoes: new AfericoesApi(http),
+    afericoes,
     alertas: new AlertasApi(http),
+    fila,
+    sincronizador: new SincronizadorDeFila(fila, afericoes),
   }
 }
 

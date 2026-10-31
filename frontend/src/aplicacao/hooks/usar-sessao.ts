@@ -5,6 +5,7 @@ import { useCallback, useSyncExternalStore } from 'react'
 
 import { usarDependencias } from '@/aplicacao/dependencias'
 import type { Usuario } from '@/aplicacao/contratos/tipos'
+import { enviarAoServiceWorker } from '@/infraestrutura/pwa/service-worker'
 
 import { chaves } from './chaves'
 
@@ -49,5 +50,7 @@ export function usarSair(): () => void {
     sessao.encerrar()
     // Limpa todo o cache: os dados são de uma usina e de um usuário específicos.
     cliente.clear()
+    // E a cópia offline da API guardada pelo Service Worker.
+    enviarAoServiceWorker({ tipo: 'limpar-cache-api' })
   }, [cliente, sessao])
 }

@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.error_handlers import registrar_error_handlers
+from app.api.middlewares import registrar_medidor_de_tempo
 from app.api.v1.router import api_router
 from app.infrastructure.config.settings import get_settings
 from app.infrastructure.database.session import engine
@@ -42,8 +43,11 @@ def criar_app() -> FastAPI:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        # Cabeçalhos lidos pelo PWA: duração da resposta (RNF02) e dados do laudo (RF04).
+        expose_headers=["Server-Timing", "Content-Disposition", "X-Laudo-Numero", "X-Laudo-Hash"],
     )
 
+    registrar_medidor_de_tempo(app, settings.teto_tempo_resposta_ms)
     registrar_error_handlers(app)
     app.include_router(api_router)
 

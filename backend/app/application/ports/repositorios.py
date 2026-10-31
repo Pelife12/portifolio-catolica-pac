@@ -14,6 +14,7 @@ from decimal import Decimal
 
 from app.infrastructure.database.models.afericao import Afericao
 from app.infrastructure.database.models.alerta import Alerta
+from app.infrastructure.database.models.audit_log import AuditLog
 from app.infrastructure.database.models.enums import StatusAlerta, TipoAlerta
 from app.infrastructure.database.models.leira import Leira
 from app.infrastructure.database.models.leira_residuo import LeiraResiduo
@@ -151,3 +152,10 @@ class LeiraRepository(ABC):
 
     @abstractmethod
     async def remover(self, leira: Leira) -> None: ...
+
+
+class AuditoriaRepository(ABC):
+    """Trilha de auditoria somente-inserção (RNF01): não há atualizar nem remover."""
+
+    @abstractmethod
+    async def registrar(self, registro: AuditLog) -> AuditLog: ...

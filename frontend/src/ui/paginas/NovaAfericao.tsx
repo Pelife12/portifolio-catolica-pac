@@ -78,20 +78,23 @@ export function NovaAfericao() {
     if (!leiraId || !localizacao.coordenada) return
     registrar.mutate(
       {
-        leira_id: leiraId,
-        temperatura_celsius: temperatura,
-        umidade_percentual: umidade,
-        // toISOString devolve UTC com o "Z": a API exige fuso explícito (RNF01).
-        registrado_em: dataDaColeta.toISOString(),
-        latitude: localizacao.coordenada.latitude,
-        longitude: localizacao.coordenada.longitude,
-        id_cliente: idCliente,
+        dados: {
+          leira_id: leiraId,
+          temperatura_celsius: temperatura,
+          umidade_percentual: umidade,
+          // toISOString devolve UTC com o "Z": a API exige fuso explícito (RNF01).
+          registrado_em: dataDaColeta.toISOString(),
+          latitude: localizacao.coordenada.latitude,
+          longitude: localizacao.coordenada.longitude,
+          id_cliente: idCliente,
+        },
+        rotuloDaLeira: leira?.codigo ?? 'Leira',
       },
       {
-        onSuccess: (afericao) => {
-          // Novo id para a próxima coleta desta sessão.
+        onSuccess: (resultado) => {
+          // Novo id para a próxima coleta: a anterior já está no servidor ou na fila.
           definirIdCliente(crypto.randomUUID())
-          navegar(CAMINHOS.afericaoRegistrada(leiraId), { state: { afericao } })
+          navegar(CAMINHOS.afericaoRegistrada(leiraId), { state: { resultado } })
         },
       },
     )

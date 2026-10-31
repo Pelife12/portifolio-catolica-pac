@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
 import { App } from './App'
+import { registrarServiceWorker } from './infraestrutura/pwa/service-worker'
 
 import './estilos/tokens.css'
 import './estilos/base.css'
@@ -17,3 +18,6 @@ createRoot(raiz).render(
     <App />
   </StrictMode>,
 )
+
+// Depois do primeiro render: o registro do SW não pode atrasar a abertura da tela.
+void registrarServiceWorker()

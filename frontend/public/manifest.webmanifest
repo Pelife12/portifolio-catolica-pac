@@ -1,0 +1,27 @@
+{
+  "name": "Aferra · Rastreabilidade de compostagem",
+  "short_name": "Aferra",
+  "description": "Coleta de aferições e rastreabilidade de leiras de compostagem, mesmo sem rede no pátio.",
+  "lang": "pt-BR",
+  "start_url": "/leiras",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f1720",
+  "theme_color": "#0f1720",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    { "src": "/icones/icone-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icones/icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    {
+      "src": "/icones/icone-mascaravel-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Leiras", "url": "/leiras" },
+    { "name": "Fila de envio", "url": "/fila" }
+  ]
+}

@@ -45,6 +45,9 @@ class Settings(BaseSettings):
     # Queda considerada "brusca" entre duas aferições consecutivas (RF03).
     queda_brusca_delta_celsius: float = Field(default=10.0)
 
+    # RNF02: teto de tempo de resposta; acima dele a requisição é registrada no log.
+    teto_tempo_resposta_ms: int = Field(default=2000)
+
 
 @lru_cache
 def get_settings() -> Settings:

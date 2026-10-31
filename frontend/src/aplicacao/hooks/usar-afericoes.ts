@@ -1,10 +1,12 @@
-/** Consulta e registro de aferições (RF02 + RNF01). */
+/** Consulta e registro de aferições (RF02 + RNF01), com fila offline. */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import type { Afericao, AfericaoCriar } from '@/aplicacao/contratos/tipos'
 import { usarDependencias } from '@/aplicacao/dependencias'
-import { ErroDeApi } from '@/infraestrutura/http/erros'
+import { novoItemDaFila, type ItemDaFila } from '@/aplicacao/portas/fila-de-afericoes'
+import { ErroDeRede } from '@/infraestrutura/http/erros'
+import { agendarSincronizacaoEmSegundoPlano } from '@/infraestrutura/pwa/background-sync'
 
 import { chaves } from './chaves'
 
@@ -16,18 +18,45 @@ export function usarAfericoes(leiraId?: string) {
   })
 }
 
+/** O que aconteceu com a coleta: chegou ao servidor ou ficou no aparelho. */
+export type ResultadoDoRegistro =
+  | { tipo: 'enviada'; afericao: Afericao }
+  | { tipo: 'na_fila'; item: ItemDaFila }
+
+export interface PedidoDeRegistro {
+  dados: AfericaoCriar
+  /** Código da leira, guardado junto da coleta para a fila funcionar sem rede. */
+  rotuloDaLeira: string
+}
+
+/**
+ * Tenta enviar na hora; sem rede, a coleta vai para a fila do IndexedDB e sobe
+ * depois. Recusa de negócio (trava de 24h, validação) não entra na fila: o
+ * operador ainda está na tela e pode corrigir agora.
+ */
 export function usarRegistrarAfericao() {
-  const { afericoes } = usarDependencias()
+  const { afericoes, fila } = usarDependencias()
   const cliente = useQueryClient()
 
-  return useMutation<Afericao, Error, AfericaoCriar>({
-    mutationFn: (dados) => afericoes.registrar(dados),
-    // Trava de 24h e validação são decisões de negócio: repetir não muda o
-    // resultado. Só vale insistir em falha de transporte, e disso cuida a
-    // política global do QueryClient.
-    retry: (tentativas, erro) => !(erro instanceof ErroDeApi) && tentativas < 2,
-    onSuccess: (afericao) => {
-      void cliente.invalidateQueries({ queryKey: chaves.afericoes(afericao.leira_id) })
+  return useMutation<ResultadoDoRegistro, Error, PedidoDeRegistro>({
+    mutationFn: async ({ dados, rotuloDaLeira }) => {
+      try {
+        return { tipo: 'enviada', afericao: await afericoes.registrar(dados) }
+      } catch (erro) {
+        if (!(erro instanceof ErroDeRede)) throw erro
+        const item = novoItemDaFila(dados, rotuloDaLeira)
+        await fila.adicionar(item)
+        // Acorda o SW quando a rede voltar, mesmo que o app seja fechado (05/11).
+        void agendarSincronizacaoEmSegundoPlano()
+        return { tipo: 'na_fila', item }
+      }
+    },
+    onSuccess: (resultado) => {
+      if (resultado.tipo === 'na_fila') {
+        void cliente.invalidateQueries({ queryKey: chaves.fila })
+        return
+      }
+      void cliente.invalidateQueries({ queryKey: chaves.afericoes(resultado.afericao.leira_id) })
       void cliente.invalidateQueries({ queryKey: chaves.afericoes() })
       // O motor roda no servidor a cada coleta nova (RF03): os alertas da leira
       // podem ter mudado.

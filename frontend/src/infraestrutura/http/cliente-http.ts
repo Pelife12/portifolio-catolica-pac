@@ -38,9 +38,30 @@ export class ClienteHttp {
   constructor(private readonly opcoes: Opcoes) {}
 
   async requisitar<T>(caminho: string, requisicao: Requisicao = {}): Promise<T> {
+    const resposta = await this.executar(caminho, requisicao, 'application/json')
+    if (resposta.status === 204) return undefined as T
+    return (await resposta.json()) as T
+  }
+
+  /** Baixa um arquivo (o laudo em PDF), com o nome sugerido pelo servidor. */
+  async baixar(
+    caminho: string,
+    requisicao: Requisicao = {},
+  ): Promise<{ arquivo: Blob; nomeDoArquivo: string | null }> {
+    const resposta = await this.executar(caminho, requisicao, '*/*')
+    const disposicao = resposta.headers.get('Content-Disposition') ?? ''
+    const nomeDoArquivo = /filename="?([^";]+)"?/i.exec(disposicao)?.[1] ?? null
+    return { arquivo: await resposta.blob(), nomeDoArquivo }
+  }
+
+  private async executar(
+    caminho: string,
+    requisicao: Requisicao,
+    aceita: string,
+  ): Promise<Response> {
     const { metodo = 'GET', corpo, formulario, parametros, publico } = requisicao
 
-    const cabecalhos = new Headers({ Accept: 'application/json' })
+    const cabecalhos = new Headers({ Accept: aceita })
     if (!publico) {
       const token = this.opcoes.obterToken()
       if (token) cabecalhos.set('Authorization', `Bearer ${token}`)
@@ -77,8 +98,7 @@ export class ClienteHttp {
     }
 
     if (!resposta.ok) throw await this.traduzirErro(resposta)
-    if (resposta.status === 204) return undefined as T
-    return (await resposta.json()) as T
+    return resposta
   }
 
   private montarUrl(caminho: string, parametros?: Requisicao['parametros']): string {

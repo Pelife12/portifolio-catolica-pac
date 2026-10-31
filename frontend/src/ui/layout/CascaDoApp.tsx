@@ -8,9 +8,11 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 
 import { usarAlertas } from '@/aplicacao/hooks/usar-alertas'
+import { usarFila, usarSincronizacaoAutomatica } from '@/aplicacao/hooks/usar-fila'
 import { usarSair, usarUsuarioAtual } from '@/aplicacao/hooks/usar-sessao'
 import { ROTULO_PAPEL } from '@/dominio/rotulos'
 import { AlternadorDeTema } from '@/ui/componentes/AlternadorDeTema'
+import { AvisoDeNovaVersao } from '@/ui/componentes/AvisoDeNovaVersao'
 import { Icone, type NomeDoIcone } from '@/ui/componentes/Icone'
 import { usarStatusDeRede } from '@/ui/hooks/usar-status-de-rede'
 import { CAMINHOS } from '@/ui/rotas/caminhos'
@@ -25,6 +27,7 @@ const ABAS: Aba[] = [
   { para: CAMINHOS.leiras, texto: 'Leiras', icone: 'leira' },
   { para: CAMINHOS.painel, texto: 'Painel', icone: 'painel' },
   { para: CAMINHOS.alertas, texto: 'Alertas', icone: 'alertas' },
+  { para: CAMINHOS.fila, texto: 'Fila', icone: 'recarregar' },
 ]
 
 export function CascaDoApp() {
@@ -35,7 +38,14 @@ export function CascaDoApp() {
 
   // Marcador da aba: só alertas abertos entram, senão vira ruído permanente.
   const { data: alertasAbertos } = usarAlertas({ status: 'aberto' })
-  const quantidadeDeAlertas = alertasAbertos?.length ?? 0
+  // Indicador de sincronização (29/10): coletas que ainda estão só no aparelho.
+  const { data: fila } = usarFila()
+  usarSincronizacaoAutomatica()
+  const marcadores: Record<string, number> = {
+    [CAMINHOS.alertas]: alertasAbertos?.length ?? 0,
+    // Pendentes e recusadas: as duas pedem atenção do operador.
+    [CAMINHOS.fila]: fila?.length ?? 0,
+  }
 
   return (
     <div className="casca">
@@ -64,6 +74,8 @@ export function CascaDoApp() {
         </button>
       </header>
 
+      <AvisoDeNovaVersao />
+
       {!online ? (
         <p className="faixa-offline" role="status">
           <Icone nome="alerta" tamanho={14} />
@@ -82,8 +94,14 @@ export function CascaDoApp() {
           >
             <span style={{ position: 'relative' }}>
               <Icone nome={aba.icone} tamanho={20} />
-              {aba.para === CAMINHOS.alertas && quantidadeDeAlertas > 0 ? (
-                <span className="casca__aba__marcador">{quantidadeDeAlertas}</span>
+              {(marcadores[aba.para] ?? 0) > 0 ? (
+                <span
+                  className={`casca__aba__marcador${
+                    aba.para === CAMINHOS.fila ? ' casca__aba__marcador--atencao' : ''
+                  }`}
+                >
+                  {marcadores[aba.para]}
+                </span>
               ) : null}
             </span>
             {aba.texto}

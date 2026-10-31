@@ -1,7 +1,7 @@
 # 🍃 Sistema Especialista para Rastreabilidade de Compostagem Orgânica
 
-[![Status](https://img.shields.io/badge/Status-Planejamento_e_Arquitetura-blue)]()
-[![Stack](https://img.shields.io/badge/Stack_Planejado-React_|_Python_|_PostgreSQL-success)]()
+[![Status](https://img.shields.io/badge/Status-Desenvolvimento_conclu%C3%ADdo-success)]()
+[![Stack](https://img.shields.io/badge/Stack-React_PWA_|_FastAPI_|_PostgreSQL-blue)]()
 
 > **Projeto de Portfólio (Engenharia de Software/Ciência da Computação)** <br>
 > **Autor:** Felipe Bogo <br>
@@ -64,17 +64,58 @@ Design teste feito até o momento: https://claude.ai/code/artifact/75ba4c83-95e3
 
 ## 🛠️ Estado do desenvolvimento
 
-| Pasta | O que é | Documentação |
-| --- | --- | --- |
-| `backend/` | API FastAPI em Clean Architecture, PostgreSQL e Alembic | motor de regras, trava de 24h e alertas concluídos (Marco 1) |
-| `frontend/` | PWA em React consumido no pátio | [frontend/README.md](frontend/README.md) |
+Todas as entregas do cronograma (06/08 a 03/12) estão implementadas:
 
-Para subir o ambiente completo:
+| Requisito | Onde está |
+| --- | --- |
+| RF01 · Traço C/N e umidade | `domain/services/calculo_de_traco.py` · tela Nova leira com cálculo em tempo real |
+| RF02 · Trava de 24h | validação na API, gatilho no banco e checagem prévia no PWA |
+| RF03 · Motor termofílico e alertas | `domain/services/motor_de_alertas.py` · central de alertas |
+| RF04 · Laudo em PDF | `GET /api/v1/leiras/{id}/laudo` · botão "Laudo PDF" no histórico da leira |
+| RF05 · Sincronização assíncrona | fila em IndexedDB, Background Sync e idempotência por `id_cliente` |
+| RNF01 · Auditoria | timestamp com fuso, GPS obrigatório, usuário do token e `audit_log` imutável |
+| RNF02 · Teto de 2 s | índices das consultas recorrentes e cabeçalho `Server-Timing` com aviso no log |
+| RNF03 · Usabilidade de campo | alvos de 48–72 px, passo de 0,5 °C, contraste AA nos dois temas |
+
+| Pasta | O que é |
+| --- | --- |
+| `backend/` | API FastAPI em Clean Architecture, PostgreSQL e migrations Alembic |
+| `frontend/` | PWA em React, instalável e operável offline ([frontend/README.md](frontend/README.md)) |
+
+### Desenvolvimento
 
 ```bash
-docker compose up --build        # PostgreSQL + API em http://localhost:8000
-cd frontend && npm install && npm run dev   # PWA em http://localhost:5173
+docker compose up --build                       # PostgreSQL + API em http://localhost:8000
+cd frontend && npm install && npm run dev        # PWA em http://localhost:5173
 ```
+
+### Homologação
+
+Build de produção do PWA (Service Worker ativo) servido por nginx, API sem reload e segredo do JWT obrigatório:
+
+```bash
+JWT_SEGREDO=$(openssl rand -hex 32) docker compose -f docker-compose.homologacao.yml up --build -d
+```
+
+PWA em <http://localhost:8080> · documentação da API em <http://localhost:8000/docs>.
+
+### Demonstração ponta a ponta
+
+```bash
+docker compose -f docker-compose.homologacao.yml exec api python -m scripts.seed_demo
+```
+
+O script cria uma usina de demonstração com um gestor, um operador e três leiras — uma conforme, uma não conforme (com alerta do motor) e uma em andamento — e imprime os acessos de teste no terminal. Roteiro sugerido:
+
+1. **Entrar** como operador no celular e instalar o app ("Adicionar à tela inicial").
+2. **Coletar** na LR-103: ajustar a temperatura com `+`/`−` (toque longo acelera), aguardar o GPS e registrar.
+3. **Cortar a rede** (modo avião) e registrar outra coleta: ela vai para a **Fila**, com o marcador na aba.
+4. **Voltar a rede**: a fila sobe sozinha (Background Sync), sem duplicar — o `id_cliente` garante a idempotência.
+5. **Testar a trava de 24h**: no campo "Momento da coleta", voltar a data dois dias; o app avisa antes de enviar e a API/banco recusam.
+6. Entrar como **gestor** no desktop: Painel do pátio, **Central de alertas** (LR-102 não atingiu 55 °C em 72 h) e histórico com a curva de temperatura.
+7. **Emitir o laudo** da LR-101 (conforme) e da LR-102 (não conforme) e conferir o hash de integridade no rodapé.
+
+> Os dados históricos da demonstração são gravados com os gatilhos desligados **apenas dentro da transação do script**, porque aferições de dias atrás violam a trava de 24h. Nenhum caminho da API consegue fazer isso.
 
 ---
 *Este projeto foi desenvolvido como requisito de avaliação (N3) acadêmica, focado na etapa de Engenharia de Requisitos e Planejamento Arquitetural de Software.*

@@ -57,3 +57,10 @@ class Alerta(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     leira: Mapped[Leira] = relationship(back_populates="alertas")
     afericao: Mapped[Afericao | None] = relationship()
     reconhecido_por: Mapped[Usuario | None] = relationship()
+
+    __table_args__ = (
+        # RNF02: central de alertas (filtro por status, mais recentes primeiro).
+        sa.Index("ix_alertas_status_detectado", "status", "detectado_em"),
+        # RNF02: deduplicação do motor a cada aferição nova (RF03).
+        sa.Index("ix_alertas_leira_tipo", "leira_id", "tipo"),
+    )

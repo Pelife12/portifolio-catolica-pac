@@ -6,6 +6,7 @@ from app.api.v1.routes import (
     afericoes,
     alertas,
     auth,
+    laudos,
     leiras,
     residuos,
     saude,
@@ -24,3 +25,4 @@ api_router.include_router(leiras.router)
 api_router.include_router(traco.router)
 api_router.include_router(afericoes.router)
 api_router.include_router(alertas.router)
+api_router.include_router(laudos.router)

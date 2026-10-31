@@ -92,7 +92,12 @@ export function NovaLeira() {
 
   const traco = calcularTraco.data
   const podeSalvar =
-    codigo.trim().length > 0 && dataMontagem !== '' && Boolean(usuario) && !criarLeira.isPending
+    codigo.trim().length > 0 &&
+    dataMontagem !== '' &&
+    Boolean(usuario) &&
+    // Massa inválida não some em silêncio da composição: bloqueia o cadastro.
+    !linhas.some((linha) => massaInvalida(linha.massa)) &&
+    !criarLeira.isPending
 
   function enviar() {
     if (!usuario) return
@@ -132,6 +137,7 @@ export function NovaLeira() {
             <CampoDeTexto
               rotulo="Código da leira"
               placeholder="LR-014"
+              maxLength={50}
               autoCapitalize="characters"
               value={codigo}
               onChange={(evento) => definirCodigo(evento.target.value)}
@@ -189,6 +195,7 @@ export function NovaLeira() {
                     rotulo="Massa (kg)"
                     inputMode="decimal"
                     placeholder="0"
+                    erro={massaInvalida(linha.massa) ? 'Informe um número maior que zero.' : null}
                     value={linha.massa}
                     onChange={(evento) =>
                       definirLinhas((atuais) =>
@@ -316,4 +323,11 @@ export function NovaLeira() {
 function rotularResiduo(residuo: Residuo): string {
   const categoria = ROTULO_CATEGORIA_RESIDUO[residuo.categoria]
   return `${residuo.nome} · ${categoria} · C ${formatarNumero(residuo.percentual_carbono, 0)}% / N ${formatarNumero(residuo.percentual_nitrogenio, 1)}%`
+}
+
+/** Massa digitada que não serve: não vazia e não positiva (ou absurda). */
+function massaInvalida(texto: string): boolean {
+  if (texto.trim() === '') return false
+  const valor = Number(texto.replace(',', '.'))
+  return !Number.isFinite(valor) || valor <= 0 || valor > 1_000_000
 }
