@@ -2,7 +2,7 @@
  * Service Worker do Aferra.
  *
  * Escrito à mão, sem Workbox: as estratégias são poucas e precisam ser lidas e
- * defendidas na banca. Duas responsabilidades:
+ * defendidas na banca. Três responsabilidades:
  *
  * 1. App shell (22/10): o app abre sem conexão depois da primeira visita.
  *    - navegação: rede primeiro, cai para o index.html em cache;
@@ -10,6 +10,11 @@
  *    - fontes do Google: stale-while-revalidate.
  * 2. Leitura offline (29/10): GET na API usa rede primeiro e, sem rede, devolve
  *    a última resposta guardada — a leira continua consultável no pátio.
+ * 3. Background Sync (05/11): ao voltar a rede, envia a fila de aferições do
+ *    IndexedDB mesmo com o app fechado.
+ *
+ * O esquema do IndexedDB (nome, versão e stores) é o mesmo de
+ * src/infraestrutura/armazenamento/banco-local.ts — os dois mudam juntos.
  */
 
 const VERSAO = 'v1'
@@ -26,6 +31,8 @@ const SHELL = [
   '/icones/icone-192.png',
   '/icones/icone-512.png',
 ]
+
+const TAG_SINCRONIZACAO = 'sincronizar-afericoes'
 
 // ---------------------------------------------------------------------------
 // Ciclo de vida
@@ -145,3 +152,108 @@ async function revalidarEmSegundoPlano(request, nomeDoCache) {
   return emCache || atualizacao
 }
 
+// ---------------------------------------------------------------------------
+// Background Sync (05/11)
+// ---------------------------------------------------------------------------
+
+self.addEventListener('sync', (evento) => {
+  if (evento.tag === TAG_SINCRONIZACAO) evento.waitUntil(sincronizar())
+})
+
+async function sincronizar() {
+  // Com o app aberto, quem envia é a página (mesmo código das telas e dos
+  // testes); o SW só avisa. Com o app fechado, o próprio SW esvazia a fila.
+  const janelas = await self.clients.matchAll({ type: 'window' })
+  if (janelas.length > 0) {
+    janelas.forEach((janela) => janela.postMessage({ tipo: 'sincronizar' }))
+    return
+  }
+  await esvaziarFila()
+}
+
+const BANCO = 'aferra'
+const VERSAO_DO_BANCO = 1
+const STORE_FILA = 'fila_afericoes'
+const STORE_CREDENCIAL = 'credencial'
+
+function abrirBanco() {
+  return new Promise((resolver, rejeitar) => {
+    const pedido = indexedDB.open(BANCO, VERSAO_DO_BANCO)
+    pedido.onupgradeneeded = () => {
+      const banco = pedido.result
+      if (!banco.objectStoreNames.contains(STORE_FILA)) {
+        banco.createObjectStore(STORE_FILA, { keyPath: 'idCliente' })
+      }
+      if (!banco.objectStoreNames.contains(STORE_CREDENCIAL)) {
+        banco.createObjectStore(STORE_CREDENCIAL)
+      }
+    }
+    pedido.onsuccess = () => resolver(pedido.result)
+    pedido.onerror = () => rejeitar(pedido.error)
+  })
+}
+
+function operar(banco, store, modo, acao) {
+  return new Promise((resolver, rejeitar) => {
+    const transacao = banco.transaction(store, modo)
+    const pedido = acao(transacao.objectStore(store))
+    transacao.oncomplete = () => resolver(pedido && pedido.result)
+    transacao.onerror = () => rejeitar(transacao.error)
+  })
+}
+
+async function esvaziarFila() {
+  const banco = await abrirBanco()
+  const credencial = await operar(banco, STORE_CREDENCIAL, 'readonly', (s) => s.get('sessao'))
+  // Sem sessão válida não há como autenticar: a fila espera o próximo login.
+  if (!credencial || credencial.expiraEm <= Date.now()) return
+
+  const itens = await operar(banco, STORE_FILA, 'readonly', (s) => s.getAll())
+  for (const item of itens) {
+    if (item.estado !== 'pendente') continue
+
+    let resposta
+    try {
+      resposta = await fetch(`${credencial.urlBase}/afericoes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          Authorization: `Bearer ${credencial.token}`,
+        },
+        body: JSON.stringify(item.dados),
+      })
+    } catch (erro) {
+      // Rede caiu de novo: rejeitar a promessa faz o navegador reagendar o sync.
+      throw erro
+    }
+
+    if (resposta.ok) {
+      // 201 (criada) ou 200 (id_cliente já existia): nos dois casos está no servidor.
+      await operar(banco, STORE_FILA, 'readwrite', (s) => s.delete(item.idCliente))
+    } else if (resposta.status === 401) {
+      return
+    } else if (resposta.status >= 400 && resposta.status < 500) {
+      // Recusa de negócio (trava de 24h, leira removida...): repetir não resolve.
+      let mensagem = `Recusada pelo servidor (HTTP ${resposta.status}).`
+      let codigo = `HTTP_${resposta.status}`
+      try {
+        const corpo = await resposta.json()
+        if (corpo.mensagem) mensagem = corpo.mensagem
+        if (corpo.erro) codigo = corpo.erro
+      } catch {
+        // corpo sem JSON
+      }
+      await operar(banco, STORE_FILA, 'readwrite', (s) =>
+        s.put({
+          ...item,
+          estado: 'rejeitada',
+          tentativas: item.tentativas + 1,
+          ultimoErro: { codigo, mensagem, status: resposta.status },
+        }),
+      )
+    } else {
+      throw new Error(`Servidor indisponível (HTTP ${resposta.status}).`)
+    }
+  }
+}

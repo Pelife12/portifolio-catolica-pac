@@ -8,7 +8,7 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 
 import { usarAlertas } from '@/aplicacao/hooks/usar-alertas'
-import { usarFila } from '@/aplicacao/hooks/usar-fila'
+import { usarFila, usarSincronizacaoAutomatica } from '@/aplicacao/hooks/usar-fila'
 import { usarSair, usarUsuarioAtual } from '@/aplicacao/hooks/usar-sessao'
 import { ROTULO_PAPEL } from '@/dominio/rotulos'
 import { AlternadorDeTema } from '@/ui/componentes/AlternadorDeTema'
@@ -40,9 +40,11 @@ export function CascaDoApp() {
   const { data: alertasAbertos } = usarAlertas({ status: 'aberto' })
   // Indicador de sincronização (29/10): coletas que ainda estão só no aparelho.
   const { data: fila } = usarFila()
+  usarSincronizacaoAutomatica()
   const marcadores: Record<string, number> = {
     [CAMINHOS.alertas]: alertasAbertos?.length ?? 0,
-    [CAMINHOS.fila]: (fila ?? []).filter((item) => item.estado === 'pendente').length,
+    // Pendentes e recusadas: as duas pedem atenção do operador.
+    [CAMINHOS.fila]: fila?.length ?? 0,
   }
 
   return (

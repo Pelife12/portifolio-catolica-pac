@@ -6,6 +6,7 @@ import type { Afericao, AfericaoCriar } from '@/aplicacao/contratos/tipos'
 import { usarDependencias } from '@/aplicacao/dependencias'
 import { novoItemDaFila, type ItemDaFila } from '@/aplicacao/portas/fila-de-afericoes'
 import { ErroDeRede } from '@/infraestrutura/http/erros'
+import { agendarSincronizacaoEmSegundoPlano } from '@/infraestrutura/pwa/background-sync'
 
 import { chaves } from './chaves'
 
@@ -45,6 +46,8 @@ export function usarRegistrarAfericao() {
         if (!(erro instanceof ErroDeRede)) throw erro
         const item = novoItemDaFila(dados, rotuloDaLeira)
         await fila.adicionar(item)
+        // Acorda o SW quando a rede voltar, mesmo que o app seja fechado (05/11).
+        void agendarSincronizacaoEmSegundoPlano()
         return { tipo: 'na_fila', item }
       }
     },

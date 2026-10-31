@@ -21,6 +21,7 @@ import { SincronizadorDeFila } from '@/aplicacao/sincronizacao/sincronizador-de-
 import { indexedDbDisponivel } from '@/infraestrutura/armazenamento/banco-local'
 import { FilaEmMemoria } from '@/infraestrutura/armazenamento/fila-em-memoria'
 import { FilaIndexedDb } from '@/infraestrutura/armazenamento/fila-indexeddb'
+import { SessaoEspelhadaNoBancoLocal } from '@/infraestrutura/armazenamento/sessao-espelhada'
 import { SessaoLocalStorage } from '@/infraestrutura/armazenamento/sessao-local-storage'
 import { LocalizadorDoNavegador } from '@/infraestrutura/geolocalizacao/localizador-do-navegador'
 import { ClienteHttp } from '@/infraestrutura/http/cliente-http'
@@ -47,11 +48,18 @@ export function montarDependencias(
     fila: FilaDeAfericoes
   }> = {},
 ): Dependencias {
-  const armazenamento = sobrescritas.armazenamento ?? new SessaoLocalStorage()
+  const urlBase: string = sobrescritas.urlBase ?? import.meta.env.VITE_API_URL ?? URL_API_PADRAO
+  // Com IndexedDB, o token é espelhado para o Service Worker enviar a fila com o
+  // app fechado (Background Sync).
+  const armazenamento =
+    sobrescritas.armazenamento ??
+    (indexedDbDisponivel()
+      ? new SessaoEspelhadaNoBancoLocal(new SessaoLocalStorage(), urlBase)
+      : new SessaoLocalStorage())
   const sessao = new GerenciadorDeSessao(armazenamento)
 
   const http = new ClienteHttp({
-    urlBase: sobrescritas.urlBase ?? import.meta.env.VITE_API_URL ?? URL_API_PADRAO,
+    urlBase,
     obterToken: sessao.obterToken,
     // 401 vindo da API significa token inválido ou expirado: derruba a sessão
     // e a RotaProtegida devolve o operador para o login.

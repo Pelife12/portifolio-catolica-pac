@@ -6,7 +6,13 @@
  */
 
 import type { ItemDaFila } from '@/aplicacao/portas/fila-de-afericoes'
-import { usarFila, usarSincronizarFila } from '@/aplicacao/hooks/usar-fila'
+import type { ResultadoDaSincronizacao } from '@/aplicacao/sincronizacao/sincronizador-de-fila'
+import {
+  usarDescartarItemDaFila,
+  usarFila,
+  usarReenviarItemDaFila,
+  usarSincronizarFila,
+} from '@/aplicacao/hooks/usar-fila'
 import { formatarDataHora } from '@/dominio/formatacao'
 import { formatarTemperatura } from '@/dominio/temperatura'
 import { descreverErro } from '@/infraestrutura/http/erros'
@@ -76,6 +82,42 @@ export function FilaDeEnvio() {
 }
 
 function ItemDaFilaDeEnvio({ item }: { item: ItemDaFila }) {
+  const descartar = usarDescartarItemDaFila()
+  const reenviar = usarReenviarItemDaFila()
+
+  if (item.estado === 'rejeitada') {
+    const porTrava =
+      item.ultimoErro?.codigo === 'AfericaoForaDaJanela' ||
+      /24\s*h|retroativ|futuro/i.test(item.ultimoErro?.mensagem ?? '')
+
+    return (
+      <FaixaDeErro
+        titulo={porTrava ? 'Envio rejeitado · trava de 24 h' : 'Envio rejeitado pelo servidor'}
+        acoes={[
+          {
+            texto: 'Descartar',
+            // Apagar uma coleta é irreversível: confirma antes.
+            ao: () => {
+              if (window.confirm(`Descartar a coleta de ${item.rotuloDaLeira}? Ela não poderá ser recuperada.`)) {
+                descartar.mutate(item.idCliente)
+              }
+            },
+          },
+          // Na trava de 24h reenviar não adianta; nas demais, a causa pode já ter sido resolvida.
+          ...(porTrava
+            ? []
+            : [{ texto: 'Reenviar', ao: () => reenviar.mutate(item), variante: 'primario' as const }]),
+        ]}
+      >
+        {item.rotuloDaLeira} · {formatarTemperatura(item.dados.temperatura_celsius)} °C · coleta
+        de {formatarDataHora(item.dados.registrado_em)}.{' '}
+        {porTrava
+          ? 'O servidor recusa aferições com mais de 24 horas ou com data futura. Verifique o relógio do aparelho.'
+          : item.ultimoErro?.mensagem}
+      </FaixaDeErro>
+    )
+  }
+
   return (
     <Cartao compacto>
       <div className="linha linha--entre">
@@ -101,7 +143,7 @@ function ItemDaFilaDeEnvio({ item }: { item: ItemDaFila }) {
 function ResumoDaRodada({
   resultado,
 }: {
-  resultado: { enviadas: number; pendentes: number; interrompidaPor: 'rede' | 'sessao' | null }
+  resultado: ResultadoDaSincronizacao
 }) {
   if (resultado.interrompidaPor === 'rede') {
     return (
@@ -120,7 +162,8 @@ function ResumoDaRodada({
   }
   return (
     <p role="status" className="texto-secundario" style={{ textAlign: 'center' }}>
-      {resultado.enviadas} {resultado.enviadas === 1 ? 'coleta enviada' : 'coletas enviadas'}.
+      {resultado.enviadas} {resultado.enviadas === 1 ? 'coleta enviada' : 'coletas enviadas'}
+      {resultado.rejeitadas > 0 ? ` · ${resultado.rejeitadas} recusada(s) pelo servidor` : ''}.
     </p>
   )
 }
