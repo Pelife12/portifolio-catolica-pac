@@ -6,6 +6,7 @@ import { useState } from 'react'
 
 import { ProvedorDeDependencias, type Dependencias } from '@/aplicacao/dependencias'
 import { ErroDeApi } from '@/infraestrutura/http/erros'
+import { LimiteDeErro } from '@/ui/componentes/LimiteDeErro'
 import { ProvedorDeTema } from '@/ui/hooks/usar-tema'
 import { Rotas } from '@/ui/rotas/rotas'
 
@@ -33,9 +34,11 @@ export function App({ dependencias }: { dependencias?: Dependencias }) {
     <QueryClientProvider client={cliente}>
       <ProvedorDeDependencias dependencias={dependencias}>
         <ProvedorDeTema>
-          <BrowserRouter>
-            <Rotas />
-          </BrowserRouter>
+          <LimiteDeErro>
+            <BrowserRouter>
+              <Rotas />
+            </BrowserRouter>
+          </LimiteDeErro>
         </ProvedorDeTema>
       </ProvedorDeDependencias>
     </QueryClientProvider>

@@ -1,0 +1,8 @@
+# Normaliza finais de linha. Scripts e configs que rodam dentro de containers
+# Linux precisam de LF mesmo quando o repositório é clonado no Windows: um
+# entrypoint.sh com CRLF quebra com "/usr/bin/env: bash\r".
+* text=auto
+*.sh text eol=lf
+*.conf text eol=lf
+Dockerfile text eol=lf
+*.png binary

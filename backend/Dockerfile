@@ -15,7 +15,9 @@ RUN pip install --upgrade pip && pip install -r requirements-dev.txt
 
 COPY . .
 
-RUN chmod +x entrypoint.sh \
+# Remove o CR de um entrypoint salvo no Windows antes de torná-lo executável.
+RUN sed -i 's/\r$//' entrypoint.sh \
+    && chmod +x entrypoint.sh \
     && useradd --create-home appuser && chown -R appuser:appuser /app
 USER appuser
 
