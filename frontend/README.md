@@ -3,9 +3,23 @@
 Aplicação React que o operador usa no pátio para registrar aferições e o gestor
 usa para acompanhar as leiras. Consome a API FastAPI deste mesmo repositório.
 
-A conversão para PWA (manifest, Service Worker, IndexedDB e Background Sync) é a
-Sprint 4; esta sprint entrega a aplicação React, a integração com a API e as
-telas de operação.
+É um PWA instalável e offline-first: abre sem conexão, guarda as coletas numa
+fila no IndexedDB e as envia sozinho quando a rede volta, inclusive com o app
+fechado (Background Sync).
+
+## Modo offline
+
+| Peça | Onde | O que faz |
+| --- | --- | --- |
+| Manifest + ícones | `public/manifest.webmanifest` | App instalável na tela inicial |
+| Service Worker | `public/sw.js` | App shell em cache, leitura offline da API (rede-primeiro) e Background Sync |
+| Fila de aferições | `infraestrutura/armazenamento/fila-indexeddb.ts` | Coletas que ainda não chegaram ao servidor, com chave `id_cliente` |
+| Sincronizador | `aplicacao/sincronizacao/sincronizador-de-fila.ts` | Envia na ordem de coleta, para na queda de rede, marca recusas (trava de 24h) |
+| Espelho da sessão | `infraestrutura/armazenamento/sessao-espelhada.ts` | Token no IndexedDB para o SW autenticar com o app fechado |
+
+O Service Worker fica desligado no `npm run dev` (atrapalha o HMR). Para testar
+o offline, use `npm run build && npm run preview` ou `VITE_SW_EM_DESENVOLVIMENTO=true`.
+A simulação de quebra de rede está em `sincronizador-de-fila.teste.ts`.
 
 ## Como rodar
 
@@ -81,4 +95,6 @@ Regras que valem em todo o código:
 | RF02 | Checagem da janela de 24h antes de enviar e tratamento da recusa da API |
 | RF03 | Painel de alertas e reavaliação da leira pelo motor |
 | RNF01 | Timestamp local, geolocalização obrigatória e usuário do token na coleta |
+| RF04 | Botão "Laudo PDF" no histórico da leira |
+| RF05 | Fila offline, sincronizador e Background Sync |
 | RNF03 | Biblioteca de componentes de campo |
