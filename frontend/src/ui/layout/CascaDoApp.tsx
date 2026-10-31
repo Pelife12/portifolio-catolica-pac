@@ -11,6 +11,7 @@ import { usarAlertas } from '@/aplicacao/hooks/usar-alertas'
 import { usarSair, usarUsuarioAtual } from '@/aplicacao/hooks/usar-sessao'
 import { ROTULO_PAPEL } from '@/dominio/rotulos'
 import { AlternadorDeTema } from '@/ui/componentes/AlternadorDeTema'
+import { AvisoDeNovaVersao } from '@/ui/componentes/AvisoDeNovaVersao'
 import { Icone, type NomeDoIcone } from '@/ui/componentes/Icone'
 import { usarStatusDeRede } from '@/ui/hooks/usar-status-de-rede'
 import { CAMINHOS } from '@/ui/rotas/caminhos'
@@ -63,6 +64,8 @@ export function CascaDoApp() {
           <Icone nome="sair" tamanho={18} />
         </button>
       </header>
+
+      <AvisoDeNovaVersao />
 
       {!online ? (
         <p className="faixa-offline" role="status">

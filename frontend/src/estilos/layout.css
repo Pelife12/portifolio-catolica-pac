@@ -184,3 +184,15 @@
     padding: 0 var(--esp-4);
   }
 }
+
+/* Faixa de nova versão do app (Service Worker em espera). */
+.faixa-versao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+  padding: var(--esp-1) var(--esp-4);
+  background: var(--superficie);
+  border-bottom: 1px solid var(--linha);
+  font-size: 14px;
+}
