@@ -1,0 +1,60 @@
+/*
+ * Tokens de design do Aferra (canvas de referência do projeto).
+ *
+ * Regras travadas nesta sprint:
+ * - um único acento (azul) e um único raio de canto (--raio);
+ * - --fg2 calibrado para contraste WCAG AA (>= 4.5:1) nos dois temas, porque
+ *   os rótulos em IBM Plex Mono usam essa cor e são lidos sob sol forte;
+ * - alvos de toque nunca menores que --alvo-min (uso com luvas, RNF03).
+ */
+
+:root {
+  --casca: oklch(0.9 0.006 245);
+  --fundo: oklch(0.97 0.004 245);
+  --superficie: oklch(1 0 0);
+  --fg: oklch(0.21 0.016 245);
+  --fg2: oklch(0.44 0.02 245);
+  --linha: oklch(0.82 0.012 245);
+  --acento: oklch(0.47 0.13 240);
+  --acento-pressionado: oklch(0.42 0.13 240);
+  --acento-fg: oklch(0.995 0 0);
+  --ok: oklch(0.46 0.13 155);
+  --atencao: oklch(0.52 0.13 70);
+  --perigo: oklch(0.49 0.18 28);
+  --sobre-semantico: oklch(0.995 0 0);
+
+  --raio: 14px;
+  --raio-interno: 10px;
+  --alvo-min: 48px;
+  --alvo-grande: 72px;
+
+  --esp-1: 4px;
+  --esp-2: 8px;
+  --esp-3: 12px;
+  --esp-4: 16px;
+  --esp-5: 20px;
+  --esp-6: 28px;
+
+  --fonte: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --fonte-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --sombra: 0 1px 2px oklch(0.21 0.016 245 / 0.06), 0 8px 24px oklch(0.21 0.016 245 / 0.06);
+}
+
+[data-tema='escuro'] {
+  --casca: oklch(0.13 0.012 245);
+  --fundo: oklch(0.18 0.014 245);
+  --superficie: oklch(0.235 0.016 245);
+  --fg: oklch(0.985 0.004 245);
+  --fg2: oklch(0.72 0.02 245);
+  --linha: oklch(0.42 0.02 245);
+  --acento: oklch(0.74 0.13 235);
+  --acento-pressionado: oklch(0.68 0.13 235);
+  --acento-fg: oklch(0.17 0.02 245);
+  --ok: oklch(0.78 0.15 155);
+  --atencao: oklch(0.83 0.15 82);
+  --perigo: oklch(0.7 0.19 28);
+  --sobre-semantico: oklch(0.16 0.02 245);
+
+  --sombra: 0 1px 2px oklch(0 0 0 / 0.4), 0 8px 24px oklch(0 0 0 / 0.35);
+}

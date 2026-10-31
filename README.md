@@ -62,5 +62,19 @@ Artigo científico completo formatado no padrão da Sociedade Brasileira de Comp
 
 Design teste feito até o momento: https://claude.ai/code/artifact/75ba4c83-95e3-4581-8ee2-2067499bf65b
 
+## 🛠️ Estado do desenvolvimento
+
+| Pasta | O que é | Documentação |
+| --- | --- | --- |
+| `backend/` | API FastAPI em Clean Architecture, PostgreSQL e Alembic | motor de regras, trava de 24h e alertas concluídos (Marco 1) |
+| `frontend/` | PWA em React consumido no pátio | [frontend/README.md](frontend/README.md) |
+
+Para subir o ambiente completo:
+
+```bash
+docker compose up --build        # PostgreSQL + API em http://localhost:8000
+cd frontend && npm install && npm run dev   # PWA em http://localhost:5173
+```
+
 ---
 *Este projeto foi desenvolvido como requisito de avaliação (N3) acadêmica, focado na etapa de Engenharia de Requisitos e Planejamento Arquitetural de Software.*
